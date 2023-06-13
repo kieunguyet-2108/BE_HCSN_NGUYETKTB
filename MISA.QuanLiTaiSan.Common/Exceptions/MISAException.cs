@@ -11,15 +11,18 @@ namespace MISA.QuanLiTaiSan.Common.Exceptions
     {
         public string? ErrorMsg { get; set; }
 
-        public Dictionary<string, string> ErrorData { get; set; }
+        public IDictionary? ErrorData { get; set; }
 
-        public MISAException(string errorMsg, Dictionary<string, string> errorData)
+        public object? Result { get; set; }
+
+        public MISAException(string errorMsg, IDictionary? errorData = null, object? result = null)
         {
             ErrorMsg = errorMsg;
             ErrorData = errorData;
+            Result = result;
         }
 
-        public override string Message
+        public override string? Message
         {
             get
             {
@@ -27,7 +30,7 @@ namespace MISA.QuanLiTaiSan.Common.Exceptions
             }
         }
 
-        public override IDictionary Data
+        public override IDictionary? Data
         {
             get
             {

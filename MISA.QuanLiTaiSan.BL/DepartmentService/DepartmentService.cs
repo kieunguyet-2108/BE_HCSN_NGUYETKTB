@@ -1,7 +1,7 @@
 ﻿using MISA.QuanLiTaiSan.BL.BaseBL;
 using MISA.QuanLiTaiSan.DL.BaseDL;
 using MISA.QuanLiTaiSan.DL.DepartmentDL;
-using MISA.QuanLiTaiSan.DL.Entities;
+using MISA.QuanLiTaiSan.Common.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +10,10 @@ using System.Threading.Tasks;
 
 namespace MISA.QuanLiTaiSan.BL.DepartmentBL
 {
-    public class DepartmentService : BaseRepository<Department>, IDepartmentService
+    public class DepartmentService : BaseService<Department> , IDepartmentService
     {
-        IDepartmentRepository _departmentRepository;
-        public DepartmentService(IDepartmentRepository departmentRepository)
+        public DepartmentService(IBaseRepository<Department> baseRepository) : base(baseRepository)
         {
-            _departmentRepository = departmentRepository;
-        }
-        public string GetName(string name)
-        {
-          return _departmentRepository.GetName(name);
         }
     }
 }

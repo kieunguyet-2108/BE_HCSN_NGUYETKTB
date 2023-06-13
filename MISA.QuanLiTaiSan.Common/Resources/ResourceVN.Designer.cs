@@ -61,7 +61,16 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Có lõi xảy ra vui lòng liên hệ MISA để được trợ giúp. .
+        ///   Looks up a localized string similar to Không có dữ liệu trả về..
+        /// </summary>
+        public static string Msg_Empty_Data {
+            get {
+                return ResourceManager.GetString("Msg_Empty_Data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Có lỗi xảy ra vui lòng liên hệ MISA để được trợ giúp. .
         /// </summary>
         public static string Msg_Exception {
             get {
@@ -70,7 +79,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Xóa dữ liệu thất bại.
+        ///   Looks up a localized string similar to Xóa dữ liệu thất bại..
         /// </summary>
         public static string Msg_Failed_Delete {
             get {
@@ -79,7 +88,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Thêm mới dữ liệu thất bại.
+        ///   Looks up a localized string similar to Thêm mới dữ liệu thất bại..
         /// </summary>
         public static string Msg_Failed_Insert {
             get {
@@ -88,7 +97,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cập nhật dữ liệu thất bại.
+        ///   Looks up a localized string similar to Cập nhật dữ liệu thất bại..
         /// </summary>
         public static string Msg_Failed_Update {
             get {
@@ -97,7 +106,25 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Xóa dữ liệu thành công.
+        ///   Looks up a localized string similar to Lấy dữ liệu thành công..
+        /// </summary>
+        public static string Msg_Get_Success {
+            get {
+                return ResourceManager.GetString("Msg_Get_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dữ liệu đầu vào không hợp lệ..
+        /// </summary>
+        public static string Msg_IsValid_InputData {
+            get {
+                return ResourceManager.GetString("Msg_IsValid_InputData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Xóa dữ liệu thành công..
         /// </summary>
         public static string Msg_Success_Delete {
             get {
@@ -106,7 +133,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Thêm mới dữ liệu thành công.
+        ///   Looks up a localized string similar to Thêm mới dữ liệu thành công..
         /// </summary>
         public static string Msg_Success_Insert {
             get {
@@ -115,7 +142,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cập nhật dữ liệu thành công.
+        ///   Looks up a localized string similar to Cập nhật dữ liệu thành công..
         /// </summary>
         public static string Msg_Success_Update {
             get {
@@ -133,7 +160,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} đã tồn tại trong hệ thống.
+        ///   Looks up a localized string similar to {0} đã tồn tại trong hệ thống..
         /// </summary>
         public static string Validate_Duplicate_Code {
             get {
@@ -142,7 +169,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} không được để trống.
+        ///   Looks up a localized string similar to {0} không được để trống..
         /// </summary>
         public static string Validate_Empty_InputField {
             get {
@@ -151,7 +178,7 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Giá trị {0} mà bạn lựa chọn không tồn tại trong hệ thống .
+        ///   Looks up a localized string similar to Giá trị {0} mà bạn lựa chọn không tồn tại trong hệ thống ..
         /// </summary>
         public static string Validate_Exist_Selection {
             get {
@@ -169,7 +196,16 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tỉ lệ hao mòn phải bằng 1 chia số năm sử dụng.
+        ///   Looks up a localized string similar to {0} không tồn tại trong hệ thống..
+        /// </summary>
+        public static string Validate_NotExist {
+            get {
+                return ResourceManager.GetString("Validate_NotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tỉ lệ hao mòn phải bằng 1 chia số năm sử dụng..
         /// </summary>
         public static string Validate_Valid_DepreciationRate {
             get {
@@ -178,11 +214,29 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Giá trị hao mòn năm phải bằng nguyên giá nhân tỉ lệ hao mòn.
+        ///   Looks up a localized string similar to Giá trị hao mòn năm phải bằng nguyên giá nhân tỉ lệ hao mòn..
         /// </summary>
         public static string Validate_Valid_DepreciationValue {
             get {
                 return ResourceManager.GetString("Validate_Valid_DepreciationValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} không đúng định dạng..
+        /// </summary>
+        public static string Validate_Valid_Format {
+            get {
+                return ResourceManager.GetString("Validate_Valid_Format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} không hợp lệ..
+        /// </summary>
+        public static string Validate_Valid_Info {
+            get {
+                return ResourceManager.GetString("Validate_Valid_Info", resourceCulture);
             }
         }
     }

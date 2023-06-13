@@ -1,9 +1,12 @@
-﻿using MySqlConnector;
+﻿using MISA.QuanLiTaiSan.Common.Pagination;
+using MISA.QuanLiTaiSan.Entities;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Dapper.SqlMapper;
 
 namespace MISA.QuanLiTaiSan.DL.BaseDL
 {
@@ -33,6 +36,16 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         /// <returns>Dữ liệu theo id truyền vào</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public T GetEntityById(Guid id);
+
+        /// <summary>
+        /// lấy ra dữ liệu theo paging
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (15/05/2023)
+        public PagingModel<T> GetByPaging(FilterParam filter, string? where);
+
+   
         #endregion
 
         #region UPDATE
@@ -43,7 +56,7 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         /// <param name="entityId">id của entity sẽ update</param>
         /// <returns>số bản ghi được update</returns>
         /// Created By: NguyetKTB (15/05/2023)
-        public int Update(T entity, Guid entityId);
+        public int Update(T entity, Guid id);
         #endregion
 
         #region INSERT
@@ -63,7 +76,10 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         /// <param name="guids">danh sách dữ liệu cần xóa</param>
         /// <returns>Số bản ghi bị ảnh hưởng</returns>
         /// Created By: NguyetKTB (15/05/2023)
-        public int Delete(Guid[] guids);
+        public int Delete(string[] id);
         #endregion
+
+       
+
     }
 }

@@ -117,32 +117,44 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Msg_Empty_Data" xml:space="preserve">
+    <value>Không có dữ liệu trả về.</value>
+    <comment>Thông báo người dùng không có dữ liệu vào được trả về</comment>
+  </data>
   <data name="Msg_Exception" xml:space="preserve">
-    <value>Có lõi xảy ra vui lòng liên hệ MISA để được trợ giúp. </value>
+    <value>Có lỗi xảy ra vui lòng liên hệ MISA để được trợ giúp. </value>
     <comment>Thông báo khi có exception</comment>
   </data>
   <data name="Msg_Failed_Delete" xml:space="preserve">
-    <value>Xóa dữ liệu thất bại</value>
+    <value>Xóa dữ liệu thất bại.</value>
     <comment>Thông báo xóa dữ liệu thất bại</comment>
   </data>
   <data name="Msg_Failed_Insert" xml:space="preserve">
-    <value>Thêm mới dữ liệu thất bại</value>
+    <value>Thêm mới dữ liệu thất bại.</value>
     <comment>Thông báo thêm mới dữ liệu thất bại</comment>
   </data>
   <data name="Msg_Failed_Update" xml:space="preserve">
-    <value>Cập nhật dữ liệu thất bại</value>
+    <value>Cập nhật dữ liệu thất bại.</value>
     <comment>Thông báo cập nhật dữ liệu thất bại</comment>
   </data>
+  <data name="Msg_Get_Success" xml:space="preserve">
+    <value>Lấy dữ liệu thành công.</value>
+    <comment>Thông báo cho người dùng khi lấy dữ liệu thành công</comment>
+  </data>
+  <data name="Msg_IsValid_InputData" xml:space="preserve">
+    <value>Dữ liệu đầu vào không hợp lệ.</value>
+    <comment>Thông báo khi dữ liệu đầu vào trống hoặc không hợp lệ</comment>
+  </data>
   <data name="Msg_Success_Delete" xml:space="preserve">
-    <value>Xóa dữ liệu thành công</value>
+    <value>Xóa dữ liệu thành công.</value>
     <comment>Thông báo xóa dữ liệu thành công</comment>
   </data>
   <data name="Msg_Success_Insert" xml:space="preserve">
-    <value>Thêm mới dữ liệu thành công</value>
+    <value>Thêm mới dữ liệu thành công.</value>
     <comment>Thông báo thêm mới dữ liệu thành công</comment>
   </data>
   <data name="Msg_Success_Update" xml:space="preserve">
-    <value>Cập nhật dữ liệu thành công</value>
+    <value>Cập nhật dữ liệu thành công.</value>
     <comment>Thông báo cập nhật dữ liệu thành công</comment>
   </data>
   <data name="Procedure_Name" xml:space="preserve">
@@ -150,27 +162,39 @@
     <comment>Tên của procedure trong database</comment>
   </data>
   <data name="Validate_Duplicate_Code" xml:space="preserve">
-    <value>{0} đã tồn tại trong hệ thống</value>
+    <value>{0} đã tồn tại trong hệ thống.</value>
     <comment>Thông báo lỗi trùng mã với mã khác trong hệ thống</comment>
   </data>
   <data name="Validate_Empty_InputField" xml:space="preserve">
-    <value>{0} không được để trống</value>
+    <value>{0} không được để trống.</value>
     <comment>Thông báo cho người dùng lỗi bắt buộc phải nhập</comment>
   </data>
   <data name="Validate_Exist_Selection" xml:space="preserve">
-    <value>Giá trị {0} mà bạn lựa chọn không tồn tại trong hệ thống </value>
+    <value>Giá trị {0} mà bạn lựa chọn không tồn tại trong hệ thống .</value>
     <comment>Thông báo cho người dùng lỗi khi người dùng nhập option không tồn tại</comment>
   </data>
   <data name="Validate_MaxLength" xml:space="preserve">
     <value>{0} không được phép nhập quá {1} kí tự.</value>
     <comment>Thông báo cho người dùng khi người dùng nhập quá kí tự cho phép</comment>
   </data>
+  <data name="Validate_NotExist" xml:space="preserve">
+    <value>{0} không tồn tại trong hệ thống.</value>
+    <comment>Thông báo cho người dùng khi người dùng nhập thông tin không tồn tại</comment>
+  </data>
   <data name="Validate_Valid_DepreciationRate" xml:space="preserve">
-    <value>Tỉ lệ hao mòn phải bằng 1 chia số năm sử dụng</value>
+    <value>Tỉ lệ hao mòn phải bằng 1 chia số năm sử dụng.</value>
     <comment>Thông báo cho người dùng lỗi về nghiệp vụ</comment>
   </data>
   <data name="Validate_Valid_DepreciationValue" xml:space="preserve">
-    <value>Giá trị hao mòn năm phải bằng nguyên giá nhân tỉ lệ hao mòn</value>
+    <value>Giá trị hao mòn năm phải bằng nguyên giá nhân tỉ lệ hao mòn.</value>
     <comment>Thông báo cho người dùng lỗi về nghiệp vụ</comment>
+  </data>
+  <data name="Validate_Valid_Format" xml:space="preserve">
+    <value>{0} không đúng định dạng.</value>
+    <comment>Thông báo cho người dùng về lỗi định dạng</comment>
+  </data>
+  <data name="Validate_Valid_Info" xml:space="preserve">
+    <value>{0} không hợp lệ.</value>
+    <comment>Thông báo cho người dùng khi người dùng nhập không đúng thông tin</comment>
   </data>
 </root>

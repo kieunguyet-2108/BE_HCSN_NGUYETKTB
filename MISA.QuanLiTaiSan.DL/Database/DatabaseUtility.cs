@@ -1,11 +1,14 @@
-﻿using MISA.QuanLiTaiSan.Common.Enumeration;
+﻿using Dapper;
+using MISA.QuanLiTaiSan.Common.Enumeration;
 using MISA.QuanLiTaiSan.Common.Resources;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static MISA.QuanLiTaiSan.Common.Attributes.MISAttribute;
+using static MISA.QuanLiTaiSan.Common.Attributes.MSAttribute;
 
 namespace MISA.QuanLiTaiSan.DL.Database
 {
@@ -37,26 +40,74 @@ namespace MISA.QuanLiTaiSan.DL.Database
 
 
         /// <summary>
-        /// Lấy ra property có attribute khóa chính trong bảng
+        /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns>khóa chính trong bảng</returns>
+        /// <param name="cnn"></param>
+        /// <param name="storeName"></param>
+        /// <param name="includeReturnValueParameter"></param>
+        /// <returns></returns>
         /// Created By: NguyetKTB (20/05/2023)
-        public static string GetPrimaryKeyInTable<T>()
+        public static MySqlParameter[] DeriveParameter(IDbConnection cnn, string storeName, bool includeReturnValueParameter)
         {
-            var properties = typeof(T).GetProperties();
-            string primaryKey = "";
-            // duyệt properties và kiểm tra property nào có attribute là primary key
-            foreach (var property in properties)
+            using (var cmd = cnn.CreateCommand())
             {
-                var attri = (PrimaryKey)Attribute.GetCustomAttribute(property, typeof(PrimaryKey));
-                if (attri != null)
+                cmd.CommandText = storeName;
+                cmd.CommandType = CommandType.StoredProcedure;
+                if (cnn.State != ConnectionState.Open)
                 {
-                    primaryKey = property.Name;
+                    cnn.Open();
+                }
+                MySqlCommandBuilder.DeriveParameters((MySqlCommand)cmd);
+                cnn.Close();
+                if (!includeReturnValueParameter)
+                {
+                    cmd.Parameters.RemoveAt(0);
+                }
+                var discoveredParameters = new MySqlParameter[cmd.Parameters.Count];
+                cmd.Parameters.CopyTo(discoveredParameters, 0);
+                foreach (var discoveredParameter in discoveredParameters)
+                {
+                    discoveredParameter.Value = DBNull.Value;
+                }
+                return discoveredParameters;
+            }
+        }
+
+        /// <summary>
+        /// Build lại đống param cần thiết từ đống param truyền vào
+        /// </summary>
+        /// <param name="storeName"></param>
+        /// <param name="cnn"></param>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        /// Created By: NguyetKTB (20/05/2023)
+        public static DynamicParameters BuildParam(string storeName, IDbConnection cnn, object entity)
+        {
+            var param = new DynamicParameters();
+            var entityType = entity.GetType();
+            var paramArr = DeriveParameter(cnn, storeName, true);
+            foreach (var paramInfo in paramArr)
+            {
+                if (paramInfo != null)
+                {
+                    var paramName = paramInfo.ParameterName;
+                    try
+                    {
+                        paramName = paramName.Replace(paramName.Contains("$") ? "@$" : "@", "");
+                        var paramValue = entityType.GetProperty(paramName).GetValue(entity, null);
+                        param.Add(paramInfo.ParameterName, paramValue, direction: paramInfo.Direction);
+                    }
+                    catch (Exception)
+                    {
+
+                        throw new Exception("ERROR: " + paramName.ToString() + " not found");
+                    }
                 }
             }
-            return primaryKey;
-
+            return param;
         }
+
+
     }
 }

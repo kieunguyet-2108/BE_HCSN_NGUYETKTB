@@ -1,5 +1,5 @@
 ﻿using MISA.QuanLiTaiSan.BL.BaseBL;
-using MISA.QuanLiTaiSan.DL.Entities;
+using MISA.QuanLiTaiSan.Common.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

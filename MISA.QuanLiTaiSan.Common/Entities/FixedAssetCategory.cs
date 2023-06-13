@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static MISA.QuanLiTaiSan.Common.Attributes.MISAttribute;
+using static MISA.QuanLiTaiSan.Common.Attributes.MSAttribute;
 
-namespace MISA.QuanLiTaiSan.DL.Entities
+namespace MISA.QuanLiTaiSan.Common.Entities
 {
     /// <summary>
     /// Lớp loại tài sản

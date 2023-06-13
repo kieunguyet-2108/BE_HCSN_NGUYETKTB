@@ -4,14 +4,15 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static MISA.QuanLiTaiSan.Common.Attributes.MISAttribute;
+using static MISA.QuanLiTaiSan.Common.Attributes.MSAttribute;
 
-namespace MISA.QuanLiTaiSan.DL.Entities
+namespace MISA.QuanLiTaiSan.Common.Entities
 {
     /// <summary>
     /// Lớp phòng ban
     /// </summary>  
     /// Created By: NguyetKTB (15/05/2023)  
+    [TableName("department")]
     public class Department
     {
         #region Properties
@@ -39,13 +40,13 @@ namespace MISA.QuanLiTaiSan.DL.Entities
         /// òng ban
         /// </summary> 
         /// Created By: NguyetKTB (15/05/2023)
-        public string description { get; set; }
+        public string? description { get; set; }
 
         /// <summary>
         /// Người tạo
         /// </summary>  
         /// Created By: NguyetKTB (15/05/2023)
-        public string created_by { get; set; }
+        public string? created_by { get; set; }
 
         /// <summary>
         /// Ngày tạo
@@ -57,7 +58,7 @@ namespace MISA.QuanLiTaiSan.DL.Entities
         /// Người sửa
         /// </summary> 
         /// Created By: NguyetKTB (15/05/2023)
-        public string modified_by { get; set; }
+        public string? modified_by { get; set; }
 
         /// <summary>
         /// Ngày sửa

@@ -1,4 +1,4 @@
-﻿
+﻿using Microsoft.AspNetCore.Mvc;
 using MISA.QuanLiTaiSan.BL.BaseBL;
 using MISA.QuanLiTaiSan.Common.Entities;
 
@@ -6,9 +6,9 @@ using MISA.QuanLiTaiSan.Common.Entities;
 
 namespace MISA.QuanLiTaiSan.Api.Controllers
 {
-    public class DepartmentsController : BaseController<Department>
+    public class FixedAssetImportController : BaseController<FixedAssetImport>
     {
-        public DepartmentsController(IBaseService<Department> baseService) : base(baseService)
+        public FixedAssetImportController(IBaseService<FixedAssetImport> baseService) : base(baseService)
         {
         }
     }
