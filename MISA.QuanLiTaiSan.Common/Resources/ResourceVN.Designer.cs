@@ -187,6 +187,15 @@ namespace MISA.QuanLiTaiSan.Common.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Không thể xóa tài sản vì đã có chứng từ phát sinh..
+        /// </summary>
+        public static string Validate_FixedAsset_BeforeDelete {
+            get {
+                return ResourceManager.GetString("Validate_FixedAsset_BeforeDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} không được phép nhập quá {1} kí tự..
         /// </summary>
         public static string Validate_MaxLength {

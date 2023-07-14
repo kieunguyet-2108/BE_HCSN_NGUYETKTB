@@ -24,7 +24,7 @@ namespace MISA.QuanLiTaiSan.Common.Pagination
         /// Giá trị filter
         /// </summary>
         /// Created By: NguyetKTB (15/05/2023)
-        public string? Value { get; set; }
+        public object? Value { get; set; }
 
         /// <summary>
         /// Toán tử filter

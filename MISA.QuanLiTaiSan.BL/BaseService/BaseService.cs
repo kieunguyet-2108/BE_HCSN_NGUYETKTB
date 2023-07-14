@@ -1,10 +1,13 @@
-﻿using MISA.QuanLiTaiSan.Common.Enumeration;
+﻿using MISA.QuanLiTaiSan.Common.Entities;
+using MISA.QuanLiTaiSan.Common.Enumeration;
 using MISA.QuanLiTaiSan.Common.Exceptions;
+using MISA.QuanLiTaiSan.Common.Model;
 using MISA.QuanLiTaiSan.Common.Pagination;
 using MISA.QuanLiTaiSan.Common.Resources;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
 using MISA.QuanLiTaiSan.Common.Utilities;
 using MISA.QuanLiTaiSan.DL.BaseDL;
-using MISA.QuanLiTaiSan.Entities;
+using MISA.QuanLiTaiSan.DL.FixedAssetDL;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +15,9 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static Dapper.SqlMapper;
@@ -24,17 +29,34 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
     {
 
         private readonly IBaseRepository<T> _baseRepository;
+        public readonly IUnitOfWork _unitOfWork;
         // khai báo danh sách chứa lỗi
         public IDictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
+        private IFixedAssetRepository fixedAssetRepository;
+        private IBaseRepository<Department> baseRepository;
+        private IBaseRepository<FixedAssetCategory> baseRepository1;
 
         #region CONSTRUCTOR
-        public BaseService(IBaseRepository<T> baseRepositoy)
+        public BaseService(IBaseRepository<T> baseRepository, IUnitOfWork unitOfWork)
         {
-            _baseRepository = baseRepositoy;
+            _baseRepository = baseRepository;
+            _unitOfWork = unitOfWork;
         }
+
         #endregion
 
         #region GET 
+        /// <summary>
+        /// Hàm thực hiện lấy mã tài sản mới
+        /// </summary>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public string GetNewCode()
+        {
+            string newCode = _baseRepository.GetNewCode();
+            return newCode;
+        }
+
         /// <summary>
         /// Lấy ra danh sách dữ liệu
         /// </summary>
@@ -68,57 +90,10 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (15/05/2023)
         public virtual PagingModel<T> GetByPaging(FilterParam filter)
         {
-            string where = ""; 
-            int totalRecord = 0;
-            if (filter.Filters != null)
-            {
-                //if (filter.Filters.Count > 0)
-                //{
-                //    where += " AND ";
-                //}
-                foreach (var filterColumn in filter.Filters)
-                {
-                    string whereCondition = "";
-                    if (filterColumn.Operators != null)
-                    {
-                        // where CODE like '%a%' OR Name like '%a%' AND department_id = '11111' -> ERROR
-                        // where (CODE like '%a%' OR Name like '%a%') AND department_id = '11111' -> SUCCESS
-                        if (filterColumn.Operators == (int)MSFilterOperator.OR)
-                        {
-                            whereCondition += "(";
-                            whereCondition += ProcessMixedFilterColumn(filterColumn);
-                            whereCondition += ProcessGetFilterOperator(filterColumn.Operators);
-                        }
-                        else
-                        {
-                            whereCondition += ProcessMixedFilterColumn(filterColumn);
-                            whereCondition += ProcessGetFilterOperator(filterColumn.Operators);
-                        }
-                    }
-                    else
-                    {
-                        whereCondition += ProcessMixedFilterColumn(filterColumn);
-                        whereCondition += ")";
-                    }
-                    where += whereCondition;
-                }
+            string whereCondition = HandleCondition(filter);
+            PagingModel<T> pagingModel = _baseRepository.GetByPaging(filter, whereCondition);
+            return pagingModel;
 
-
-            }
-            // nếu where bao gồm AND hoặc OR dưới cuối thì loại bỏ
-            if (where.EndsWith("AND ") || where.EndsWith("OR "))
-            {
-                where = where.Remove(where.Length - 4);
-            }
-            try
-            {
-                PagingModel<T> pagingModel = _baseRepository.GetByPaging(filter, where);
-                return pagingModel;
-            }
-            catch (Exception ex)
-            {
-                throw new MISAException(ex.Message);
-            }
         }
         #endregion
 
@@ -133,14 +108,25 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         public int Update(T entity, Guid id)
         {
             ValidateService(entity, (int)MSMode.Edit);
-            ValidateData(entity);
+            ValidateData(entity, true);
             if (errors.Count > 0)
             {
                 throw new MISAException(ResourceVN.Msg_Exception, (IDictionary?)errors);
             }
             else
             {
-                return _baseRepository.Update(entity, id);
+                _unitOfWork.GetTransaction();
+                try
+                {
+                    var rowEffect = _baseRepository.Update(entity, id);
+                    _unitOfWork.Commit();
+                    return rowEffect;
+                }
+                catch
+                {
+                    _unitOfWork.Rollback();
+                    throw;
+                }
             }
         }
         #endregion
@@ -162,22 +148,30 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
             }
             else
             {
-                var newId = Guid.NewGuid();
                 var primaryKey = AttributeUtility.GetPrimaryKeyName<T>();
-                // set lại primary key cho entity = new id
-                entity.GetType().GetProperty(primaryKey).SetValue(entity, newId);
-                int rowEffect = _baseRepository.Insert(entity);
-                if (rowEffect > 0)
+
+                _unitOfWork.GetTransaction();
+                try
                 {
-                    return newId;
+                    // tạo id mới cho entity
+                    var entityId = Guid.NewGuid();
+                    // gán id mới cho entity
+                    var propertyId = entity.GetType().GetProperty(primaryKey);
+                    propertyId.SetValue(entity, entityId);
+                    int rowEffect = _baseRepository.Insert(entity);
+                    // trả về entity.primaryKey
+                    _unitOfWork.Commit();
+                    return entityId;
                 }
-                else
+                catch
                 {
-                    throw new MISAException(ResourceVN.Msg_Failed_Insert);
+                    _unitOfWork.Rollback();
+                    throw;
                 }
             }
 
         }
+
         #endregion
 
 
@@ -188,10 +182,21 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// <param name="guids">danh sách dữ liệu cần xóa</param>
         /// <returns>Số bản ghi bị ảnh hưởng</returns>
         /// Created By: NguyetKTB (15/05/2023)
-        public int Delete(string[] guids)
+        public virtual int Delete(string[] guids)
         {
-            int row = _baseRepository.Delete(guids);
-            return row;
+            _unitOfWork.GetTransaction();
+            try
+            {
+                int row = _baseRepository.Delete(guids);
+                _unitOfWork.Commit();
+                return row;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+
         }
         #endregion
 
@@ -215,6 +220,7 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
                     return " AND ";
             }
         }
+
         /// <summary>
         /// Hàm này dùng để tạo ra các câu lệnh sql gửi xuống db
         /// </summary>
@@ -247,6 +253,18 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
                         break;
                     case (int)MSFilterCondition.EndsWith:
                         break;
+                    case (int)MSFilterCondition.In:
+                        break;
+                    case (int)MSFilterCondition.NotIn:
+                        string tempCondition = "";
+                        JsonElement jsonElement = (JsonElement)filter.Value;
+                        foreach (JsonElement element in jsonElement.EnumerateArray())
+                        {
+                            tempCondition += $"'{element.GetString()}',";
+                        }
+                        tempCondition = tempCondition.Remove(tempCondition.Length - 1);
+                        whereCondition += $"({filter.Field} NOT IN ({tempCondition}))";
+                        break;
                 }
             }
             return whereCondition;
@@ -261,7 +279,7 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// </summary>
         /// <param name="entity"></param>
         /// Created By: NguyetKTB (15/05/2023)
-        protected virtual void ValidateData(T entity)
+        protected virtual void ValidateData(T entity, bool isUpdate = false)
         {
             if (entity == null)
             {
@@ -310,7 +328,25 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
                                         errorMessages.Add(errorMsg);
                                     }
                                     break;
-
+                                case UniqueAttribute uniqueAttribute:
+                                    // lấy ra primary key
+                                    string primaryKey = AttributeUtility.GetPrimaryKeyName<T>();
+                                    object duplicateEntity = null;
+                                    if (isUpdate)
+                                    {
+                                        object primaryKeyValue = entity.GetType().GetProperty(primaryKey).GetValue(entity);
+                                        duplicateEntity = _baseRepository.CheckDuplicate((string)propertyValue, primaryKeyValue.ToString());
+                                    }
+                                    else
+                                    {
+                                        // kiểm tra xem giá trị của property có bị trùng không
+                                        duplicateEntity = _baseRepository.CheckDuplicate((string)propertyValue, "");
+                                    }
+                                    if (duplicateEntity != null)
+                                    {
+                                        errorMessages.Add(string.Format(ResourceVN.Validate_Duplicate_Code, "Mã tài sản"));
+                                    }
+                                    break;
                             }
 
                         }
@@ -334,6 +370,88 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (15/05/2023)
         protected virtual void ValidateService(T entity, int mode) { }
 
+        protected virtual string HandleCondition(FilterParam filter)
+        {
+            string where = "";
+            int totalRecord = 0;
+            if (filter.Filters != null)
+            {
+                //if (filter.Filters.Count > 0)
+                //{
+                //    where += " AND ";
+                //}
+                foreach (var filterColumn in filter.Filters)
+                {
+                    string whereCondition = "";
+                    if (filterColumn.Operators != null)
+                    {
+                        // where CODE like '%a%' OR Name like '%a%' AND department_id = '11111' -> ERROR
+                        // where (CODE like '%a%' OR Name like '%a%') AND department_id = '11111' -> SUCCESS
+                        if (filterColumn.Operators == (int)MSFilterOperator.OR)
+                        {
+                            whereCondition += "(";
+                            whereCondition += ProcessMixedFilterColumn(filterColumn);
+                            whereCondition += ProcessGetFilterOperator(filterColumn.Operators);
+                        }
+                        else
+                        {
+                            whereCondition += ProcessMixedFilterColumn(filterColumn);
+                            whereCondition += ProcessGetFilterOperator(filterColumn.Operators);
+                        }
+                    }
+                    else
+                    {
+                        whereCondition += ProcessMixedFilterColumn(filterColumn);
+                        whereCondition += ")";
+                    }
+                    where += whereCondition;
+                }
+
+
+            }
+            // nếu where bao gồm AND hoặc OR dưới cuối thì loại bỏ
+            if (where.EndsWith("AND ") || where.EndsWith("OR "))
+            {
+                where = where.Remove(where.Length - 4);
+            }
+            return where;
+        }
+
         #endregion
+
+        /// <summary>
+        /// Kiểm tra mã code có trùng hay không
+        /// </summary>
+        /// <param name="code">entity code</param>
+        /// <param name="id">entity id</param>
+        /// <returns>
+        /// nếu trùng sẽ trả về dữ liệu trùng
+        /// nếu không thì trả về null
+        /// </returns>
+        public T DuplicateCode(string code, string? id)
+        {
+            // lấy ra primary key
+            T duplicateEntity = null;
+            _unitOfWork.GetTransaction();
+            try
+            {
+                if (id != null)
+                {
+                    duplicateEntity = _baseRepository.CheckDuplicate(code, id);
+                }
+                else
+                {
+                    // kiểm tra xem giá trị của property có bị trùng không
+                    duplicateEntity = _baseRepository.CheckDuplicate(code, "");
+                }
+                _unitOfWork.Commit();
+                return duplicateEntity;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+        }
     }
 }

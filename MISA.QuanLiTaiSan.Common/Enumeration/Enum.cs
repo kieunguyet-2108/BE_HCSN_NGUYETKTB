@@ -70,21 +70,37 @@ namespace MISA.QuanLiTaiSan.Common.Enumeration
         /// </summary>
         Insert,
         /// <summary>
-        /// Lấy ra dữ liệu theo mã code
-        /// </summary>
-        GetByCode,
-        /// <summary>
         /// Lấy ra thông tin của bảng , ví dụ tổng record...
         /// </summary>
         GetInformation,
         /// <summary>
-        /// Kiểm tra mã code trùng khi update
-        /// </summary>
-        ExistUpdate,
-        /// <summary>
         /// Lấy ra thông tin entity theo điều kiện truyền vào
         /// </summary>
         GetByCondition,
+        /// <summary>
+        /// Lấy danh sách theo chứng từ
+        /// </summary>
+        GetByVoucher,
+        /// <summary>
+        /// Lấy ra mã mới nhất
+        /// </summary>
+        GetNewCode,
+        /// <summary>
+        /// Kiểm tra mã trùng lặp
+        /// </summary>
+        CheckExistCode,
+        /// <summary>
+        /// Xóa dữ liệu theo voucher truyền vào
+        /// </summary>
+        DeleteByVoucher,
+        /// <summary>
+        /// lấy ra danh sách tài sản thuộc chứng từ
+        /// </summary>
+        GetListInVoucher,
+        /// <summary>
+        /// 
+        /// </summary>
+        FindByVoucher,
 
     }
 
@@ -101,7 +117,9 @@ namespace MISA.QuanLiTaiSan.Common.Enumeration
         Like = 4,
         NotLike = 5,
         StartsWith = 6,
-        EndsWith = 7
+        EndsWith = 7,
+        In = 8,
+        NotIn = 9,
     }
 
     /// <summary>
@@ -137,5 +155,16 @@ namespace MISA.QuanLiTaiSan.Common.Enumeration
         Decimal = 3,
         Guid = 4,
         DateTime = 5,
+    }
+    /// <summary>
+    /// Hành động của object
+    /// </summary>
+    /// Created By: NguyetKTB (15/05/2023)
+    public enum MSAction
+    {
+        Add = 1,
+        Edit = 2,
+        Delete = 3,
+        Duplicate = 4,
     }
 }

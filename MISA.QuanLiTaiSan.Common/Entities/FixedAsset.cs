@@ -23,8 +23,7 @@ namespace MISA.QuanLiTaiSan.Common.Entities
         /// </summary> 
         /// Created By: NguyetKTB (15/05/2023)
         [PrimaryKey]
-        [Required("Id tài sản không được để trống.")]
-        public Guid fixed_asset_id { get; set; }
+        public Guid fixed_asset_id { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Mã tài sản
@@ -169,6 +168,9 @@ namespace MISA.QuanLiTaiSan.Common.Entities
         /// </summary>  
         /// Created By: NguyetKTB (15/05/2023)
         public DateTime? modified_date { get; set; }
+
+        public int? action { get; set; }
+
         #endregion
 
 

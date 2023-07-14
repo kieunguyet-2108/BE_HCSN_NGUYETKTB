@@ -11,11 +11,16 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="EPPlus" Version="6.2.4" />
     <PackageReference Include="ExcelDataReader" Version="3.6.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MISA.QuanLiTaiSan.Common\MISA.QuanLiTaiSan.Common.csproj" />
     <ProjectReference Include="..\MISA.QuanLiTaiSan.DL\MISA.QuanLiTaiSan.DL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AutoMapper\" />
   </ItemGroup>
 
 	

@@ -1,4 +1,5 @@
 ﻿using MISA.QuanLiTaiSan.Common.Entities;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
 using MISA.QuanLiTaiSan.DL.BaseDL;
 using MISA.QuanLiTaiSan.DL.DepartmentDL;
 using System;
@@ -11,5 +12,8 @@ namespace MISA.QuanLiTaiSan.DL.TableImportRepository
 {
     public class FixedAssetImportRepository : BaseRepository<FixedAssetImport>, IFixedAssetImportRepository
     {
+        public FixedAssetImportRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
+        {
+        }
     }
 }

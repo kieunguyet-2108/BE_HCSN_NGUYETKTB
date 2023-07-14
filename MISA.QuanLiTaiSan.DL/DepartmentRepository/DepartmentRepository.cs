@@ -10,11 +10,17 @@ using System.Text;
 using System.Threading.Tasks;
 using MISA.QuanLiTaiSan.Common.Enumeration;
 using System.Data;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
 
 namespace MISA.QuanLiTaiSan.DL.DepartmentDL
 {
     public class DepartmentRepository : BaseRepository<Department>, IDepartmentRepository
     {
+
+        public DepartmentRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
+        {
+        }
+
         /// <summary>
         /// Thực hiện lấy ra thông tin entity theo điều kiện truyền vào
         /// </summary>
@@ -26,10 +32,9 @@ namespace MISA.QuanLiTaiSan.DL.DepartmentDL
             string procName = DatabaseUtility.GetProcdureName<Department>(MSProcdureName.GetByCondition);
             DynamicParameters dynamicParameters = new DynamicParameters();
             dynamicParameters.Add("whereString", condition);
-            using (var connection = GetConnection())
-            {
-                return connection.QueryFirstOrDefault<Department>(procName, dynamicParameters, commandType: CommandType.StoredProcedure);
-            }
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            return connection.QueryFirstOrDefault<Department>(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
         }
     }
 }

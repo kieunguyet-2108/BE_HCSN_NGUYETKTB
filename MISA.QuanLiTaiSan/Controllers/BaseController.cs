@@ -3,12 +3,13 @@ using MISA.QuanLiTaiSan.BL.BaseBL;
 using MISA.QuanLiTaiSan.Common.Pagination;
 using MISA.QuanLiTaiSan.Common.Resources;
 using MISA.QuanLiTaiSan.Common.Entities;
-using MISA.QuanLiTaiSan.Entities;
 using Microsoft.AspNetCore.Cors;
 using MISA.QuanLiTaiSan.Common.Enumeration;
 using System.Collections.Generic;
 using static Dapper.SqlMapper;
 using MISA.QuanLiTaiSan.Common.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using MISA.QuanLiTaiSan.Common.Model;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -43,14 +44,12 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         public IActionResult GetAll()
         {
             IEnumerable<T> list = _baseService.GetList();
-            if (list == null)
+            if (list != null)
             {
-                return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.Success, (int)MSCODE.NoContent, list);
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, list);
+
             }
-            else
-            {
-                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, (int)MSCODE.Success, list);
-            }
+            return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.NoContent, list);
         }
 
         /// <summary>
@@ -66,21 +65,14 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(Guid id)
         {
-            try
+            T entity = _baseService.GetEntityById(id);
+            if (entity == null)
             {
-                T entity = _baseService.GetEntityById(id);
-                if (entity == null)
-                {
-                    return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.Success, (int)MSCODE.NoContent, entity);
-                }
-                else
-                {
-                    return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, (int)MSCODE.Success, entity);
-                }
+                return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.NoContent, entity);
             }
-            catch (MISAException ex)
+            else
             {
-                return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, entity);
             }
 
         }
@@ -98,26 +90,61 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpPost("GetByPaging")]
         public IActionResult GetByPaging(FilterParam filter)
         {
-            try
-            {
-                PagingModel<T> pagingModel = _baseService.GetByPaging(filter);
-                if (pagingModel.TotalRecord > 0 )
-                {
-                    return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, (int)MSCODE.Success, pagingModel);
-                }
-                else
-                {
-                    return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.Success, (int)MSCODE.NoContent, pagingModel);
-                }
-            }
-            catch (MISAException ex)
-            {
-                return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
-            }
 
+            PagingModel<T> pagingModel = _baseService.GetByPaging(filter);
+            if (pagingModel.TotalRecord > 0)
+            {
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, pagingModel);
+            }
+            else
+            {
+                return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.NoContent, pagingModel);
+            }
+        }
+
+        /// <summary>
+        /// Thực hiện kiểm tra mã code có bị trùng lặp hay không
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="entityId"></param>
+        /// <returns></returns>
+        [HttpGet("DuplicateCode")]
+        public IActionResult DuplicateCode(string code, string? entityId)
+        {
+            var entityDuplicate = _baseService.DuplicateCode(code, entityId);
+            if (entityDuplicate == null)
+            {
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, entityDuplicate);
+            }
+            else
+            {
+                throw new MISAException(string.Format(ResourceVN.Validate_Duplicate_Code, "Mã thông tin"));
+            }
         }
         #endregion
-
+        #region GET NEW CODE
+        /// <summary>
+        /// Thực hiện lấy ra mã tài sản mới nhất
+        /// </summary>
+        /// <returns>
+        /// 200 - thành công
+        /// 500 - lỗi
+        /// </returns>
+        /// Created By: NguyetKTB (28/05/2023)
+        [HttpGet("GetNewCode")]
+        public IActionResult GetNewCode()
+        {
+            string newCode = _baseService.GetNewCode();
+            if (newCode != null)
+            {
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, newCode);
+            }
+            else
+            {
+                return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.NoContent, newCode);
+            }
+        }
+        #endregion
         #region INSERT
         /// <summary>
         /// Thêm mới dữ liệu
@@ -132,21 +159,15 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpPost]
         public IActionResult Insert(T entity)
         {
-            try
+
+            var guidId = _baseService.Insert(entity);
+            if (guidId == Guid.Empty)
             {
-                var guidId = _baseService.Insert(entity);
-                if (guidId == Guid.Empty)
-                {
-                    return HandleResult(ResourceVN.Msg_Failed_Insert, MSCODE.BadRequest, (int)MSCODE.BadRequest);
-                }
-                else
-                {
-                    return HandleResult(ResourceVN.Msg_Success_Insert, MSCODE.Created, (int)MSCODE.Created, guidId);
-                }
+                return HandleResult(ResourceVN.Msg_Failed_Insert, MSCODE.BadRequest);
             }
-            catch (MISAException ex)
+            else
             {
-                return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
+                return HandleResult(ResourceVN.Msg_Success_Insert, MSCODE.Created, guidId);
             }
         }
 
@@ -167,21 +188,14 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpPut("{entityId}")]
         public IActionResult Update([FromRoute] Guid entityId, [FromBody] T entity)
         {
-            try
+            var rowAffects = _baseService.Update(entity, entityId);
+            if (rowAffects > 0)
             {
-                var rowAffects = _baseService.Update(entity, entityId);
-                if (rowAffects > 0)
-                {
-                    return HandleResult(ResourceVN.Msg_Success_Update, MSCODE.Success, (int)MSCODE.Success);
-                }
-                else
-                {
-                    return HandleResult(ResourceVN.Msg_Failed_Update, MSCODE.Success, (int)MSCODE.BadRequest);
-                }
+                return HandleResult(ResourceVN.Msg_Success_Update, MSCODE.Success);
             }
-            catch (MISAException ex)
+            else
             {
-                return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
+                return HandleResult(ResourceVN.Msg_Failed_Update, MSCODE.BadRequest);
             }
         }
 
@@ -199,46 +213,22 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpDelete]
         public IActionResult DeleteById(string[] ids)
         {
-            try
+            int rowEffects = _baseService.Delete(ids);
+            if (rowEffects > 0)
             {
-                int rowEffects = _baseService.Delete(ids);
-                if (rowEffects > 0)
-                {
-                    return HandleResult(ResourceVN.Msg_Success_Delete, MSCODE.Success, (int)MSCODE.Success);
-                }
-                else
-                {
-                    return HandleResult(ResourceVN.Msg_Failed_Delete, MSCODE.Success, (int)MSCODE.BadRequest);
-                }
+                return HandleResult(ResourceVN.Msg_Success_Delete, MSCODE.Success, rowEffects);
             }
-            catch (MISAException ex)
+            else
             {
-                return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
+                return HandleResult(ResourceVN.Msg_Failed_Delete, MSCODE.BadRequest, rowEffects);
             }
 
         }
+
         #endregion
 
-        #region HANDLE EXCEPTION
-        /// <summary>
-        /// Thực hiện xử lí exception trả về cho client
-        /// </summary>
-        /// <param name="ex">exception</param>
-        /// <returns>
-        /// 200 - Thành công
-        /// response model - thông tin lỗi trả về 
-        /// </returns>
-        /// Created By: NguyetKTB (20/05/2023)
-        protected IActionResult HandleException(MISAException ex, MSCODE statusCode, int msCode)
-        {
-            var responseModel = new ResponseModel();
-            responseModel.DevMsg = ex.ErrorMsg;
-            responseModel.UserMsg = ResourceVN.Msg_Exception;
-            responseModel.Data = ex.ErrorData;
-            responseModel.MSCode = msCode;
-            return StatusCode((int)statusCode, responseModel);
-        }
 
+        #region HANDLE RESULT
         /// <summary>
         /// Thực hiện xử lí trả về kết quả client
         /// </summary>
@@ -249,14 +239,12 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// response model - thông tin trả về 
         /// </returns>
         /// Created By: NguyetKTB (20/05/2023)
-        protected IActionResult HandleResult(string message, MSCODE statusCode, int msCode, object? data = null, object? error = null)
+        protected IActionResult HandleResult(string message, MSCODE statusCode, object? data = null)
         {
             var responseModel = new ResponseModel();
             responseModel.DevMsg = message;
             responseModel.UserMsg = message;
             responseModel.Data = data;
-            responseModel.Error = error;
-            responseModel.MSCode = msCode;
             return StatusCode((int)statusCode, responseModel);
         }
         #endregion

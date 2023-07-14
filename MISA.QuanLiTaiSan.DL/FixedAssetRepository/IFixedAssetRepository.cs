@@ -1,6 +1,5 @@
 ﻿using MISA.QuanLiTaiSan.DL.BaseDL;
 using MISA.QuanLiTaiSan.Common.Entities;
-using MISA.QuanLiTaiSan.Entities;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
@@ -10,17 +9,22 @@ using System.Text;
 using System.Threading.Tasks;
 using MISA.QuanLiTaiSan.Common.Pagination;
 using static Dapper.SqlMapper;
+using MISA.QuanLiTaiSan.Common.Model;
 
 namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
 {
     public interface IFixedAssetRepository : IBaseRepository<FixedAsset>
     {
+
+
         /// <summary>
-        /// Hàm thực hiện lấy mã tài sản mới
+        /// 
         /// </summary>
+        /// <param name="filterParam"></param>
+        /// <param name="whereCondition"></param>
         /// <returns></returns>
-        /// Created By: NguyetKTB (25/05/2023)
-        public string GetNewCode();
+        public PagingModel<FixedAsset> GetByVoucher(FilterParam filterParam, string whereCondition);
+
 
         /// <summary>
         /// Thực hiện insert nhiều tài sản
@@ -30,27 +34,24 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
         /// Created By: NguyetKTB (25/05/2023)
         public int InsertMultiple(List<FixedAsset> list);
 
-        #region CHECK EXIST
         /// <summary>
-        /// Thực hiện kiểm tra tồn tại trong trường hợp insert
+        /// Thực hiện lấy ra các tài sản thuộc các chứng từ
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="tableName"></param>
-        /// <returns>true hoặc false</returns>
-        /// Created By: NguyetKTB (15/05/2023)
-        public FixedAsset CheckExistOnInsert(string key, object value, string tableName);
+        /// <param name="voucherIds">danh sách id của chứng từ</param>
+        /// <returns>danh sách các tài sản thuộc chứng từ</returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public IEnumerable<FixedAsset> GetFixedAssetsInVoucher(string voucherIds);
+
 
         /// <summary>
-        /// Thực hiện kiểm tra tồn tại trong trường hợp update
+        /// Lấy ra danh sách tài sản tồn tại trong chứng từ
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="tableName"></param>
-        /// <returns>true hoặc false</returns>
-        /// Created By: NguyetKTB (15/05/2023)
-        public FixedAsset CheckExistOnUpdate(string key, object value, string tableName, Guid id);
+        /// <param name="assetIds"></param>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public IEnumerable<FixedAsset> FindAssetInVoucher(string[] assetIds);
 
-        #endregion
+
+
     }
 }

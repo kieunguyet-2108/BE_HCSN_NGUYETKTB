@@ -58,7 +58,7 @@ namespace MISA.QuanLiTaiSan.DL.Database
                     cnn.Open();
                 }
                 MySqlCommandBuilder.DeriveParameters((MySqlCommand)cmd);
-                cnn.Close();
+                //cnn.Close();
                 if (!includeReturnValueParameter)
                 {
                     cmd.Parameters.RemoveAt(0);

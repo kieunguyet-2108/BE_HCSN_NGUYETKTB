@@ -2,6 +2,7 @@
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 using ExcelDataReader;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MISA.QuanLiTaiSan.BL.BaseBL;
@@ -10,14 +11,14 @@ using MISA.QuanLiTaiSan.Common.DTO;
 using MISA.QuanLiTaiSan.Common.Entities;
 using MISA.QuanLiTaiSan.Common.Enumeration;
 using MISA.QuanLiTaiSan.Common.Exceptions;
+using MISA.QuanLiTaiSan.Common.Model;
 using MISA.QuanLiTaiSan.Common.Pagination;
 using MISA.QuanLiTaiSan.Common.Resources;
-using MISA.QuanLiTaiSan.Entities;
 using System.Reflection.PortableExecutable;
+using static Dapper.SqlMapper;
 
 namespace MISA.QuanLiTaiSan.Api.Controllers
 {
-
     public class FixedAssetsController : BaseController<FixedAsset>
     {
         private IFixedAssetService _fixedAssetService;
@@ -26,53 +27,19 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
             _fixedAssetService = fixedAssetService;
         }
 
-        #region GET BY CODE
-        /// <summary>
-        /// Lấy ra thông tin dữ liệu theo mã tài sản
-        /// </summary>
-        /// <param name="code">mã tài sản</param>
-        /// <param name="entityId">id tài sản</param>
-        /// <returns>
-        /// 200 - lấy dữ liệu thành công
-        /// 204 - không có dữ liệu 
-        /// </returns>
-        /// Created By: NguyetKTB (20/05/2023)
-        [HttpGet("GetByCode")]
-        public IActionResult GetByCode(string code, string? entityId)
+
+        #region 
+        [HttpPost("FindInVoucher")]
+        public IActionResult FindInVoucher(string[] ids)
         {
-            var entity = _fixedAssetService.GetFixedAssetByCode(code, entityId);
-            if (entity != null)
+            int rs = _fixedAssetService.FindAssetInVoucher(ids);
+            if (rs > 0)
             {
-                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, (int)MSCODE.Success, entity);
+                return HandleResult(ResourceVN.Validate_FixedAsset_BeforeDelete, MSCODE.BadRequest, rs);
             }
             else
             {
-                return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.Success, (int)MSCODE.NoContent, entity);
-            }
-
-        }
-        #endregion 
-
-        #region GET NEW CODE
-        /// <summary>
-        /// Thực hiện lấy ra mã tài sản mới nhất
-        /// </summary>
-        /// <returns>
-        /// 200 - thành công
-        /// 500 - lỗi
-        /// </returns>
-        /// Created By: NguyetKTB (28/05/2023)
-        [HttpGet("GetNewCode")]
-        public IActionResult GetNewCode()
-        {
-            string newCode = _fixedAssetService.GetNewFixedAssetCode();
-            if (newCode != null)
-            {
-                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, (int)MSCODE.Success, newCode);
-            }
-            else
-            {
-                return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.Success, (int)MSCODE.NoContent, newCode);
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, rs);
             }
         }
         #endregion
@@ -90,47 +57,34 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpPost("Import")]
         public IActionResult Import([FromForm] IFormFile fromFile)
         {
-            if (fromFile == null)
+            IActionResult? actionResult = null;
+            if (fromFile != null)
             {
-                return HandleResult(ResourceVN.Msg_Exception, MSCODE.Success, (int)MSCODE.BadRequest, null);
-            }
-            else
-            {
-                try
+                var fileName = Path.GetFileName(fromFile.FileName);
+                //System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                // nếu filename không contains .xlsx thì return
+                if (!Path.GetExtension(fromFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)
+                    )
                 {
-                    var fileName = Path.GetFileName(fromFile.FileName);
-                    //System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-                    // nếu filename không contains .xlsx thì return
-                    if (!Path.GetExtension(fromFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)
-                        )
-                    {
-                        return HandleResult(ResourceVN.Msg_Exception, MSCODE.Success, (int)MSCODE.BadRequest, null);
-                    }
-                    using (var stream = new MemoryStream())
-                    {
-                        fromFile.CopyTo(stream);
-                        stream.Position = 2;
-                        Tuple<List<FixedAsset>, List<ImportResponse>> result = (Tuple<List<FixedAsset>, List<ImportResponse>>)_fixedAssetService.ImportFixedAsset(stream); // Đây là một Tuple
-                        List<ImportResponse> importResponses = result.Item2;
-                        List<FixedAsset> fixedAssetList = result.Item1;
-                        // 
-                        if (importResponses.Count == 0 && fixedAssetList.Count > 0)
-                        {
-                            return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, (int)MSCODE.Success, fixedAssetList, importResponses);
-
-                        }
-                        else
-                        {
-                            return HandleResult(ResourceVN.Msg_Exception, MSCODE.Success, (int)MSCODE.BadRequest, fixedAssetList, importResponses);
-                        }
-
-                    }
+                    actionResult = HandleResult(ResourceVN.Msg_Exception, MSCODE.BadRequest, null);
                 }
-                catch (MISAException ex)
+                using (var stream = new MemoryStream())
                 {
-                    return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
+                    fromFile.CopyTo(stream);
+                    stream.Position = 2;
+                    var (fixedAssetList, importResponses) = _fixedAssetService.ImportFixedAsset(stream); // Đây là một Tuple
+                    if (importResponses.Count == 0 && fixedAssetList.Count > 0)
+                    {
+                        actionResult = HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, fixedAssetList);
+                    }
+                    else
+                    {
+                        actionResult = HandleResult(ResourceVN.Msg_Exception, MSCODE.BadRequest, importResponses);
+                    }
+
                 }
             }
+            return actionResult;
         }
         #endregion
 
@@ -147,24 +101,48 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         [HttpPost("InsertMupltiple")]
         public IActionResult InsertMultiple([FromBody] List<FixedAsset> fixedAssets)
         {
-            if (fixedAssets.Count > 0)
+
+            int row = _fixedAssetService.InsertMultiple(fixedAssets);
+            if (row > 0)
             {
-                try
-                {
-                    int row = _fixedAssetService.InsertMultiple(fixedAssets);
-                    return HandleResult(ResourceVN.Msg_Success_Insert, MSCODE.Created, (int)MSCODE.Created, row);
-                }
-                catch (MISAException ex)
-                {
-                    return HandleException(ex, MSCODE.Success, (int)MSCODE.BadRequest);
-                }
+                return HandleResult(ResourceVN.Msg_Success_Insert, MSCODE.Created, row);
             }
-            else
-            {
-                return HandleResult(ResourceVN.Msg_IsValid_InputData, MSCODE.Success, (int)MSCODE.BadRequest);
-            }
+            return HandleResult(ResourceVN.Msg_Failed_Insert, MSCODE.BadRequest, row);
         }
         #endregion
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        [HttpPost("GetByVoucher")]
+        public IActionResult GetByVoucher(FilterParam filter)
+        {
+            PagingModel<FixedAsset> list = _fixedAssetService.GetByVoucher(filter);
+            if (list != null)
+            {
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, list);
+            }
+            return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.NoContent, list);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        [HttpGet("GetListInVoucher/{voucherId}")]
+        public IActionResult GetListInVoucher(string voucherId)
+        {
+            IEnumerable<FixedAsset> fixedAssets = _fixedAssetService.GetListInVoucher(voucherId);
+            if (fixedAssets.Count() > 0)
+            {
+                return HandleResult(ResourceVN.Msg_Get_Success, MSCODE.Success, fixedAssets);
+            }
+            return HandleResult(ResourceVN.Msg_Empty_Data, MSCODE.NoContent, fixedAssets);
+        }
 
     }
 

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ExcelDataReader;
-using MISA.QuanLiTaiSan.Entities;
 using MISA.QuanLiTaiSan.Common.Pagination;
 using MISA.QuanLiTaiSan.BL.BaseBL;
 using MISA.QuanLiTaiSan.DL.FixedAssetDL;
@@ -26,6 +25,8 @@ using static MISA.QuanLiTaiSan.Common.Attributes.MSAttribute;
 using MISA.QuanLiTaiSan.DL.FixedAssetCategoryDL;
 using MISA.QuanLiTaiSan.Common.DTO;
 using static Dapper.SqlMapper;
+using MISA.QuanLiTaiSan.Common.Model;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
 
 namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
 {
@@ -38,11 +39,7 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
 
         #region CONSTRUCTOR
 
-        public FixedAssetService(IFixedAssetRepository fixedAssetRepository) : base(fixedAssetRepository)
-        {
-            _fixedAssetRepository = fixedAssetRepository;
-        }
-        public FixedAssetService(IFixedAssetRepository fixedAssetRepository, IDepartmentRepository departmentRepository, IFixedAssetCategoryRepository categoryRepository, IFixedAssetImportRepository fixedAssetImportRepository) : base(fixedAssetRepository)
+        public FixedAssetService(IFixedAssetRepository fixedAssetRepository, IDepartmentRepository departmentRepository, IFixedAssetCategoryRepository categoryRepository, IFixedAssetImportRepository fixedAssetImportRepository, IUnitOfWork unitOfWork) : base(fixedAssetRepository, unitOfWork)
         {
             _fixedAssetRepository = fixedAssetRepository;
             _departmentRepository = departmentRepository;
@@ -52,44 +49,6 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         #endregion
 
 
-        #region GET
-        /// <summary>
-        /// Hàm thực hiện lấy mã tài sản mới
-        /// </summary>
-        /// <returns></returns>
-        /// Created By: NguyetKTB (25/05/2023)
-        public string GetNewFixedAssetCode()
-        {
-            string newCode = _fixedAssetRepository.GetNewCode();
-            return newCode;
-        }
-
-        /// <summary>
-        /// Hàm thực hiện lấy tài sản theo mã tài sản
-        /// </summary>
-        /// <param name="code">mã tài sản</param>
-        /// <param name="id">id tài sản</param>
-        /// <returns></returns>
-        /// Created By: NguyetKTB (25/05/2023)
-        public FixedAsset GetFixedAssetByCode(string code, string? id = null)
-        {
-            // nếu id = null thì lấy theo trường hợp insert
-            if (string.IsNullOrEmpty(id))
-            {
-                return _fixedAssetRepository.CheckExistOnInsert("fixed_asset_code", code, "fixed_asset");
-            }
-            // nếu id khác null thì lấy theo trường hợp update
-            else
-            {
-                Guid newGuid = Guid.Parse(id);
-                return _fixedAssetRepository.CheckExistOnUpdate("fixed_asset_code", code, "fixed_asset", newGuid);
-
-            }
-
-        }
-
-        #endregion
-
 
         #region IMPORT EXCEL
         /// <summary>
@@ -98,7 +57,7 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// <param name="memoryStream"></param>
         /// <returns></returns>
         /// Created By: NguyetKTB (02/06/2023)
-        public Tuple<List<FixedAsset>, List<ImportResponse>> ImportFixedAsset(MemoryStream memoryStream)
+        public (List<FixedAsset>, List<ImportResponse>) ImportFixedAsset(MemoryStream memoryStream)
         {
             // khai báo mảng chứa thông tin lỗi
             ResponseModel responseModel = new ResponseModel();
@@ -208,7 +167,7 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
                     }
                 }
             }
-            return Tuple.Create(fixedAssetList, importResponses);
+            return (fixedAssetList, importResponses);
         }
 
 
@@ -226,43 +185,31 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
             var propType = property.PropertyType;
             if (value != null)
             {
-                try
+                if (propType == typeof(Guid))
                 {
-                    if (propType == typeof(Guid))
-                    {
-                        Guid id = new Guid((string)value);
-                        property.SetValue(entity, id);
+                    Guid id = new Guid((string)value);
+                    property.SetValue(entity, id);
 
-                    }
-                    else if (propType == typeof(string))
-                    {
-                        property.SetValue(entity, (string)value);
-                    }
-                    else if (propType == typeof(int))
-                    {
-                        int intValue = Convert.ToInt32(value);
-                        property.SetValue(entity, intValue);
-                    }
-                    else if (propType == typeof(decimal))
-                    {
-                        decimal decimalValue = Convert.ToDecimal(value);
-                        property.SetValue(entity, decimalValue);
-                    }
-                    else if (propType == typeof(DateTime?) || propType == typeof(DateTime))
-                    {
-                        DateTime dateTimeValue = DateTime.Parse(value.ToString(), CultureInfo.CreateSpecificCulture("fr-FR"));
-                        property.SetValue(entity, dateTimeValue.ToLocalTime());
-                    }
                 }
-                catch (Exception ex)
+                else if (propType == typeof(string))
                 {
-                    messages.Add(string.Format(ResourceVN.Validate_Valid_Format, field_name));
+                    property.SetValue(entity, (string)value);
                 }
-
-            }
-            else
-            {
-                throw new MISAException(ResourceVN.Msg_Exception);
+                else if (propType == typeof(int))
+                {
+                    int intValue = Convert.ToInt32(value);
+                    property.SetValue(entity, intValue);
+                }
+                else if (propType == typeof(decimal))
+                {
+                    decimal decimalValue = Convert.ToDecimal(value);
+                    property.SetValue(entity, decimalValue);
+                }
+                else if (propType == typeof(DateTime?) || propType == typeof(DateTime))
+                {
+                    DateTime dateTimeValue = DateTime.Parse(value.ToString(), CultureInfo.CreateSpecificCulture("fr-FR"));
+                    property.SetValue(entity, dateTimeValue.ToLocalTime());
+                }
             }
         }
 
@@ -296,23 +243,6 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
                     switch (propertyName)
                     {
                         case "fixed_asset_code":
-                            FixedAsset duplicateEntity = new FixedAsset();
-                            // 1. trường hợp insert hoặc import
-                            if (mode == (int)MSMode.Add || mode == (int)MSMode.Import)
-                            {
-                                duplicateEntity = _fixedAssetRepository.CheckExistOnInsert(propertyName, propertyValue, "fixed_asset");
-                            }
-                            // 2. trường hợp update
-                            else if (mode == (int)MSMode.Edit)
-                            {
-                                duplicateEntity = _fixedAssetRepository.CheckExistOnUpdate(propertyName, propertyValue, "fixed_asset", entity.fixed_asset_id);
-                            }
-                            // kiểm tra duplicate hay không
-                            if (duplicateEntity != null)
-                            {
-                                errorMessage.Add(string.Format(ResourceVN.Validate_Duplicate_Code, "Mã tài sản"));
-                                errors.Add(propertyName, errorMessage);
-                            }
                             break;
                         case "depreciation_year":
                             // 1. nguyên giá X tỉ lệ hao mòn năm = giá trị hao mòn năm
@@ -323,19 +253,12 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
                             }
                             break;
                         case "depreciation_rate":
-                            try
+                            decimal a = 1 / (decimal)entity.life_time;
+                            // 1 chia số năm SD = tỉ lệ HM
+                            if (a != entity.depreciation_rate)
                             {
-                                decimal a = 1 / (decimal)entity.life_time;
-                                // 1 chia số năm SD = tỉ lệ HM
-                                if (a != entity.depreciation_rate)
-                                {
-                                    errorMessage.Add(ResourceVN.Validate_Valid_DepreciationRate);
-                                    errors.Add(propertyName, errorMessage);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new MISAException(ex.Message);
+                                errorMessage.Add(ResourceVN.Validate_Valid_DepreciationRate);
+                                errors.Add(propertyName, errorMessage);
                             }
                             break;
                         case "department_id":
@@ -379,20 +302,6 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
             // Trường hợp thực hiện kiểm tra riêng khi import
             if (mode == (int)MSMode.Import)
             {
-                //if (entity.department_code != null && entity.department_name != null)
-                //{
-                //    conditionDepartment = $" department_code = '{entity.department_code}' AND department_name = '{entity.department_name}'";
-
-                //}
-                //else if (entity.department_name != null && entity.department_code == null)
-                //{
-                //    conditionDepartment = $" department_name = '{entity.department_name}'";
-                //}
-                //else if (entity.department_code != null && entity.department_name == null)
-                //{
-                //    conditionDepartment = $" department_code = '{entity.department_code}'";
-                //}
-
                 // kiểm tra bắt buộc nhập department_code và department_name
                 string conditionDepartment = "";
                 if (entity.department_code != null)
@@ -432,32 +341,9 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
                     entity.fixed_asset_category_code = fixedAssetCategory.fixed_asset_category_code;
                     entity.fixed_asset_category_name = fixedAssetCategory.fixed_asset_category_name;
                 }
-
-                //if (entity.fixed_asset_category_code != null)
-                //{
-                //    conditionCategory = $" fixed_asset_category_code = '{entity.fixed_asset_category_code}'";
-                //}
-                //else if (entity.fixed_asset_category_name != null)
-                //{
-                //    conditionCategory = $" fixed_asset_category_name = '{entity.fixed_asset_category_name}'";
-                //}
-                //else if (entity.fixed_asset_category_code != null && entity.fixed_asset_category_name != null)
-                //{
-                //    conditionCategory = $" fixed_asset_category_code = '{entity.fixed_asset_category_code}' AND fixed_asset_category_name = '{entity.fixed_asset_category_name}'";
-                //}
-
             }
         }
 
-        /// <summary>
-        /// Thực hiện override lại để thực hiện thêm các trường hợp kiểm tra dữ liệu riêng
-        /// </summary>
-        /// <param name="entity"></param>
-        /// Created By: NguyetKTB (02/06/2023)
-        protected override void ValidateData(FixedAsset entity)
-        {
-            base.ValidateData(entity);
-        }
         #endregion
 
 
@@ -483,18 +369,91 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
             }
             else
             {
-                int rowEffect = _fixedAssetRepository.InsertMultiple(fixedAssetList);
-                if (rowEffect > 0)
+                _unitOfWork.GetTransaction();
+                try
                 {
+                    int rowEffect = _fixedAssetRepository.InsertMultiple(fixedAssetList);
+                    _unitOfWork.Commit();
                     return rowEffect;
                 }
-                else
+                catch
                 {
-                    throw new MISAException(ResourceVN.Msg_Failed_Insert);
+                    _unitOfWork.Rollback();
+                    throw;
                 }
+
             }
 
         }
+
+        /// <summary>
+        /// Lấy ra tài sản theo chứng từ
+        /// </summary>
+        /// <param name="filter">thông tin lọc, phân trang</param>
+        /// <returns>dữ liệu phân trang</returns>
+        /// Created By: NguyetKTB (20/06/2023)
+        public PagingModel<FixedAsset> GetByVoucher(FilterParam filter)
+        {
+
+            string whereCondition = HandleCondition(filter);
+            _unitOfWork.GetTransaction();
+            try
+            {
+                PagingModel<FixedAsset> pagingModel = _fixedAssetRepository.GetByVoucher(filter, whereCondition);
+                _unitOfWork.Commit();
+                return pagingModel;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+
+        }
+
+        /// <summary>
+        /// Lấy ra danh sách tài sản theo chứng từ
+        /// </summary>
+        /// <param name="voucherId">id chứng từ</param>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (20/06/2023)
+        public IEnumerable<FixedAsset> GetListInVoucher(string voucherId)
+        {
+            _unitOfWork.GetTransaction();
+            try
+            {
+                IEnumerable<FixedAsset> list = _fixedAssetRepository.GetFixedAssetsInVoucher(voucherId);
+                _unitOfWork.Commit();
+                return list;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Thực hiện kiểm tra id có liên quan tới các chứng từ khác hay không
+        /// </summary>
+        /// <param name="guidIds"></param>
+        /// Created By: NguyetKTB (20/06/2023)
+        public int FindAssetInVoucher(string[] guidIds)
+        {
+            _unitOfWork.GetTransaction();
+            try
+            {
+                IEnumerable<FixedAsset> fixedAssets = _fixedAssetRepository.FindAssetInVoucher(guidIds);
+                _unitOfWork.Commit();
+                return fixedAssets.Count();
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+        }
+
 
     }
 }

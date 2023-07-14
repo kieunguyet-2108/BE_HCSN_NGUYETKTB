@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MISA.QuanLiTaiSan.Common.Entities
+namespace MISA.QuanLiTaiSan.Common.Model
 {
     /// <summary>
     /// Lớp bao gồm các thông tin sẽ được trả về cho người dùng
@@ -29,12 +29,6 @@ namespace MISA.QuanLiTaiSan.Common.Entities
         public string UserMsg { get; set; }
 
         /// <summary>
-        /// Mã code lỗi riêng
-        /// </summary> 
-        /// Created By: NguyetKTB (15/05/2023)
-        public int? MSCode { get; set; }
-
-        /// <summary>
         /// Dữ liệu muốn trả về
         /// </summary> 
         /// Created By: NguyetKTB (15/05/2023)
@@ -54,14 +48,12 @@ namespace MISA.QuanLiTaiSan.Common.Entities
         /// </summary>
         public ResponseModel()
         {
-
         }
-        public ResponseModel(string devMsg, string userMsg, int? MSCode, object? data, object? error = null)
+        public ResponseModel(string devMsg, string userMsg, object? data, object? error = null)
         {
-            this.DevMsg = devMsg;
-            this.UserMsg = userMsg;
-            this.MSCode = MSCode;
-            this.Data = data;
+            DevMsg = devMsg;
+            UserMsg = userMsg;
+            Data = data;
             Error = error;
         }
         #endregion

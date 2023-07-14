@@ -1,6 +1,6 @@
 ﻿using MISA.QuanLiTaiSan.Common.Entities;
 
-namespace MISA.QuanLiTaiSan.Entities
+namespace MISA.QuanLiTaiSan.Common.Model
 {
     /// <summary>
     /// Lớp chứa thông tin phân trang sẽ trả về cho người dùng

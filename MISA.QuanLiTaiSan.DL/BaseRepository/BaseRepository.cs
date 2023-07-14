@@ -10,35 +10,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MISA.QuanLiTaiSan.Common.Utilities;
-using MISA.QuanLiTaiSan.Entities;
 using MISA.QuanLiTaiSan.Common.Pagination;
 using System.Drawing;
 using static Dapper.SqlMapper;
 using System.Reflection.PortableExecutable;
 using MISA.QuanLiTaiSan.Common.Exceptions;
 using MISA.QuanLiTaiSan.Common.Resources;
+using MISA.QuanLiTaiSan.Common.Model;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
+using System.Data.Common;
 
 namespace MISA.QuanLiTaiSan.DL.BaseDL
 {
     public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
 
+        public readonly IUnitOfWork _unitOfWork;
+
+        public BaseRepository(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         #region DATABASE CONNECTION
+
+
         /// <summary>
         /// Thực hiện kết nối với database
         /// </summary>
         /// <returns>kết nối với database</returns>
         /// Created By: NguyetKTB (15/05/2023)
-        public MySqlConnection GetConnection()
+        public DbConnection GetConnection()
         {
-            // lấy ra chuỗi context kết nối tới database
-            string connectonString = DatabaseContext.ConnectionString;
-            // khởi tạo đối tượng kết nối
-            MySqlConnection connection = new MySqlConnection(connectonString);
-            // mở kết nối tới database
-            connection.Open();
-            return connection;
+            //// lấy ra chuỗi context kết nối tới database
+            //string connectonString = DatabaseContext.ConnectionString;
+            //// khởi tạo đối tượng kết nối
+            //MySqlConnection connection = new MySqlConnection(connectonString);
+            //// mở kết nối tới database
+            //connection.Open();
+            return _unitOfWork.GetConnection();
         }
+
+
         #endregion
 
         #region GET 
@@ -50,10 +63,10 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         public IEnumerable<T> GetList()
         {
             string procdureName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.GetAll);
-            using (var connection = GetConnection())
-            {
-                return connection.Query<T>(procdureName, commandType: CommandType.StoredProcedure);
-            }
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            var rs =  connection.Query<T>(procdureName, commandType: CommandType.StoredProcedure, transaction:transaction);
+            return rs;
         }
 
         /// <summary>
@@ -68,14 +81,10 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
             string primaryKey = AttributeUtility.GetPrimaryKeyName<T>();
             DynamicParameters dynamicParameters = new DynamicParameters();
             dynamicParameters.Add($"{primaryKey}", id);
-            using (var connection = GetConnection())
-            {
-                return connection.QueryFirstOrDefault<T>(procedureName, dynamicParameters, commandType: CommandType.StoredProcedure);
-            }
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            return connection.QueryFirstOrDefault<T>(procedureName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
         }
-
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -86,17 +95,16 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         public virtual PagingModel<T> GetByPaging(FilterParam filter, string? where)
         {
             string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.GetByPaging);
-            using (var connection = GetConnection())
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            var result = connection.QueryMultiple(procName,
+            new
             {
-                var result = connection.QueryMultiple(procName,
-                new
-                {
-                    ms_offset = (filter.PageNumber - 1) * filter.PageSize,
-                    ms_limit = filter.PageSize,
-                    ms_where = where
-                }, commandType: System.Data.CommandType.StoredProcedure);
-                return HandlePagingModel(result);
-            }
+                ms_offset = (filter.PageNumber - 1) * filter.PageSize,
+                ms_limit = filter.PageSize,
+                ms_where = where
+            }, commandType: System.Data.CommandType.StoredProcedure, transaction: transaction);
+            return HandlePagingModel(result);
         }
 
         /// <summary>
@@ -127,19 +135,11 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         public int Update(T entity, Guid id)
         {
             string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.Update);
-            using (var connection = GetConnection())
-            {
-                DynamicParameters dynamicParams = DatabaseUtility.BuildParam(procName, connection, entity);
-                int rowEffects = connection.Execute(procName, dynamicParams, commandType: CommandType.StoredProcedure);
-                if (rowEffects > 0)
-                {
-                    return rowEffects;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            DynamicParameters dynamicParams = DatabaseUtility.BuildParam(procName, connection, entity);
+            var rowEffects = connection.Execute(procName, dynamicParams, commandType: CommandType.StoredProcedure, transaction: transaction);
+            return rowEffects;
         }
         #endregion
 
@@ -153,19 +153,11 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         public int Insert(T entity)
         {
             string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.Insert);
-            using (var connection = GetConnection())
-            {
-                DynamicParameters dynamicParams = DatabaseUtility.BuildParam(procName, connection, entity);
-                int rowEffects = connection.Execute(procName, dynamicParams, commandType: CommandType.StoredProcedure);
-                if (rowEffects > 0)
-                {
-                    return rowEffects;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            DynamicParameters dynamicParams = DatabaseUtility.BuildParam(procName, connection, entity);
+            var rowEffects = connection.Execute(procName, dynamicParams, commandType: CommandType.StoredProcedure, transaction: _unitOfWork.GetTransaction());
+            return rowEffects;
         }
         #endregion
 
@@ -178,33 +170,61 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         /// <param name="guids">danh sách dữ liệu cần xóa</param>
         /// <returns>Số bản ghi bị ảnh hưởng</returns>
         /// Created By: NguyetKTB (15/05/2023)
-        public int Delete(string[] id)
+        public virtual int Delete(string[] id)
         {
             string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.DeleteById);
             DynamicParameters dynamicParameters = new DynamicParameters();
             dynamicParameters.Add("ids", string.Join(",", id));
-            using (var connection = GetConnection())
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            try
             {
-                // khởi tạo transaction
-                using (var transaction = connection.BeginTransaction())
-                {
-                    try
-                    {
-                        var rowEffects = connection.Execute(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                        transaction.Commit();
-                        return rowEffects;
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        return 0;
-                    }
-
-                }
+                var rowEffects = connection.Execute(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                return rowEffects;
+            }
+            catch 
+            {
+                throw;
             }
         }
         #endregion
 
+
+        /// <summary>
+        /// Hàm thực hiện lấy mã tài sản mới
+        /// </summary>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public string GetNewCode()
+        {
+            string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.GetNewCode);
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            var rs = connection.QueryFirstOrDefault<string>(procName, new { }, commandType: CommandType.StoredProcedure, transaction: transaction);
+            return rs;
+        }
+
+        /// <summary>
+        /// Thực hiện kiểm tra mã code truyền vào có trùng lặp hay không
+        /// </summary>
+        /// <param name="proValue">giá trị muốn kiểm tra</param>
+        /// <param name="id">id của entity</param>
+        /// <returns>
+        /// entity trùng lặp
+        /// </returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public T CheckDuplicate(string proValue, object? id)
+        {
+            string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.CheckExistCode);
+            DynamicParameters dynamicParameters = new DynamicParameters();
+            dynamicParameters.Add("code", $"'{proValue}'");
+            dynamicParameters.Add("id", $"'{id}'");
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            var rs = connection.QueryFirstOrDefault<T>(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+            return rs;
+
+        }
     }
 
 }

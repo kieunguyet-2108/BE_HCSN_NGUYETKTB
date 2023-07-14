@@ -10,11 +10,15 @@ using System.Text;
 using System.Threading.Tasks;
 using MISA.QuanLiTaiSan.Common.Enumeration;
 using System.Data;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
 
 namespace MISA.QuanLiTaiSan.DL.FixedAssetCategoryDL
 {
     public class FixedAssetCategoryRepository : BaseRepository<FixedAssetCategory>, IFixedAssetCategoryRepository
     {
+        public FixedAssetCategoryRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
+        {
+        }
 
         /// <summary>
         /// Thực hiện lấy ra thông tin entity theo điều kiện truyền vào
@@ -27,10 +31,9 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetCategoryDL
             string procName = DatabaseUtility.GetProcdureName<FixedAssetCategory>(MSProcdureName.GetByCondition);
             DynamicParameters dynamicParameters = new DynamicParameters();
             dynamicParameters.Add("whereString", condition);
-            using (var connection = GetConnection())
-            {
-                return connection.QueryFirstOrDefault<FixedAssetCategory>(procName, dynamicParameters, commandType: CommandType.StoredProcedure);
-            }
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            return connection.QueryFirstOrDefault<FixedAssetCategory>(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
         }
     }
 }

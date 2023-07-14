@@ -3,7 +3,6 @@ using MISA.QuanLiTaiSan.Common.Enumeration;
 using MISA.QuanLiTaiSan.DL.BaseDL;
 using MISA.QuanLiTaiSan.DL.Database;
 using MISA.QuanLiTaiSan.Common.Entities;
-using MISA.QuanLiTaiSan.Entities;
 using MySqlConnector;
 using System;
 using System.Collections.Generic;
@@ -19,25 +18,20 @@ using MISA.QuanLiTaiSan.Common.Utilities;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json;
+using MISA.QuanLiTaiSan.Common.Model;
+using Newtonsoft.Json.Linq;
+using MISA.QuanLiTaiSan.Common.UnitOfWork;
 
 namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
 {
     public class FixedAssetRepository : BaseRepository<FixedAsset>, IFixedAssetRepository
     {
 
-        /// <summary>
-        /// Hàm thực hiện lấy mã tài sản mới
-        /// </summary>
-        /// <returns></returns>
-        /// Created By: NguyetKTB (25/05/2023)
-        public string GetNewCode()
+        public FixedAssetRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
-            string procName = "Proc_FixedAsset_GetNewCode";
-            using (var connection = GetConnection())
-            {
-                return connection.QueryFirstOrDefault<string>(procName, new { }, commandType: CommandType.StoredProcedure);
-            }
         }
+
+
 
         /// <summary>
         /// Thực hiện lấy ra dữ liệu trả về thông qua paging và filter
@@ -69,68 +63,73 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
         {
             var procName = "Proc_FixedAsset_InsertMultiple";
             var fixedAssetList = JsonConvert.SerializeObject(list);
-            using (var connection = GetConnection())
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            try
             {
-                using (var transaction = connection.BeginTransaction())
-                {
-                    try
-                    {
-                        var result = connection.Execute(procName, new { FixedAssets = fixedAssetList }, commandType: CommandType.StoredProcedure, transaction: transaction);
-                        transaction.Commit();
-                        return result;
-                    }
-                    catch (Exception)
-                    {
-                        transaction.Rollback();
-                        return 0;
-                    }
-                }
+                var result = connection.Execute(procName, new { FixedAssets = fixedAssetList }, commandType: CommandType.StoredProcedure, transaction: transaction);
+                return result;
             }
-
+            catch 
+            {
+                throw;
+            }
         }
 
 
         /// <summary>
-        /// Lấy ra thông tin tài sản theo mã tài sản
+        /// 
         /// </summary>
-        /// <param name="id">id của tài sản </param>
-        /// <param name="code">mã tài sản </param>
-        /// <returns>thông tin tài sản </returns>
-        /// Created By: NguyetKTB (22/05/2023)
-        public FixedAsset CheckExistOnInsert(string key, object value, string tableName)
+        /// <param name="filterParam"></param>
+        /// <param name="whereCondition"></param>
+        /// <returns></returns>
+        public PagingModel<FixedAsset> GetByVoucher(FilterParam filterParam, string whereCondition)
         {
+            string procName = DatabaseUtility.GetProcdureName<FixedAsset>(MSProcdureName.GetByVoucher);
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            var result = connection.QueryMultiple(procName,
+            new
+            {
+                ms_offset = (filterParam.PageNumber - 1) * filterParam.PageSize,
+                ms_limit = filterParam.PageSize,
+                ms_where = whereCondition
+            }, commandType: System.Data.CommandType.StoredProcedure, transaction: transaction);
+            return HandlePagingModel(result);
+        }
 
-            string procName = DatabaseUtility.GetProcdureName<FixedAsset>(MSProcdureName.GetByCode);
+        /// <summary>
+        /// Thực hiện lấy ra các tài sản thuộc các chứng từ
+        /// </summary>
+        /// <param name="ids">danh sách id của tài sản</param>
+        /// <returns>danh sách các tài sản thuộc chứng từ</returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public IEnumerable<FixedAsset> GetFixedAssetsInVoucher(string id)
+        {
+            string procName = DatabaseUtility.GetProcdureName<FixedAsset>(MSProcdureName.GetListInVoucher);
             DynamicParameters dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add($"{key}", value);
-            // tạo đối tượng kết nối với database
-            using (var connection = GetConnection())
-            {
-                // thực hiện truy vấn dữ liệu
-                return connection.QueryFirstOrDefault<FixedAsset>(procName, dynamicParameters, commandType: CommandType.StoredProcedure);
-            }
-
+            dynamicParameters.Add("voucher_id", id);
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            return connection.Query<FixedAsset>(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
         }
 
         /// <summary>
-        /// Thực hiện kiểm tra tồn tại trong trường hợp update
+        /// Lấy ra danh sách tài sản tồn tại trong chứng từ
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="tableName"></param>
-        /// <returns>true hoặc false</returns>
-        /// Created By: NguyetKTB (15/05/2023)
-        public FixedAsset CheckExistOnUpdate(string key, object value, string tableName, Guid id)
+        /// <param name="assetIds"></param>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public IEnumerable<FixedAsset> FindAssetInVoucher(string[] assetIds)
         {
-            string procName = DatabaseUtility.GetProcdureName<FixedAsset>(MSProcdureName.ExistUpdate);
-            DynamicParameters dynamicParams = new DynamicParameters();
-            dynamicParams.Add("code", value);
-            dynamicParams.Add("id", id);
-            using (var connection = GetConnection())
-            {
-                return connection.QueryFirstOrDefault<FixedAsset>(procName, dynamicParams, commandType: CommandType.StoredProcedure);
-            }
+            string procName = DatabaseUtility.GetProcdureName<FixedAsset>(MSProcdureName.FindByVoucher);
+            DynamicParameters dynamicParameters = new DynamicParameters();
+            dynamicParameters.Add("ids", string.Join(",", assetIds));
+            var connection = GetConnection();
+            var transaction = _unitOfWork.GetTransaction();
+            return connection.Query<FixedAsset>(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
         }
+
     }
 }
 

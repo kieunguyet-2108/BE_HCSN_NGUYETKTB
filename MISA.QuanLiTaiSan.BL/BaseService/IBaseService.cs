@@ -1,5 +1,5 @@
-﻿using MISA.QuanLiTaiSan.Common.Pagination;
-using MISA.QuanLiTaiSan.Entities;
+﻿using MISA.QuanLiTaiSan.Common.Model;
+using MISA.QuanLiTaiSan.Common.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +54,7 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// <returns>Số bản ghi bị ảnh hưởng</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public Guid Insert(T entity);
+
         #endregion
 
         #region DELETE
@@ -67,5 +68,20 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
 
 
         #endregion
+
+        /// <summary>
+        /// Hàm thực hiện lấy mã tài sản mới
+        /// </summary>
+        /// <returns></returns>
+        /// Created By: NguyetKTB (25/05/2023)
+        public string GetNewCode();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public T DuplicateCode(string code, string? id);
     }
 }
