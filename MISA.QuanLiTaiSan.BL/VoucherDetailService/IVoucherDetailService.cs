@@ -11,10 +11,12 @@ namespace MISA.QuanLiTaiSan.BL.VoucherDetailService
     public interface IVoucherDetailService : IBaseService<VoucherDetail>
     {
         /// <summary>
-        /// 
+        /// Xử lý thông tin chi tiết chứng từ theo hành động truyền vào
         /// </summary>
-        /// <param name="fixedAsset"></param>
-        /// <param name="action"></param>
+        /// <param name="detail">thông tin chi tiết chứng từ</param>
+        /// <param name="voucher">thông tin chứng từ</param>
+        /// <param name="action">hành động</param>
+        /// Created By: NguyetKTB (20/06/2023)
         public void HandleActionOfAsset(VoucherDetail detail, Voucher voucher, int action);
     }
 }

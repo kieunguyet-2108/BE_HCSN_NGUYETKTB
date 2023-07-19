@@ -35,50 +35,8 @@ namespace MISA.QuanLiTaiSan.DL.BudgetDetailRepository
             var transaction = _unitOfWork.GetTransaction();
             try
             {
-                var result = connection.Execute(procName, new { BudgetDetails = budgetDetails }, commandType: CommandType.StoredProcedure, transaction:transaction);
+                var result = connection.Execute(procName, new { BudgetDetails = budgetDetails }, commandType: CommandType.StoredProcedure, transaction: transaction);
                 return result;
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Thực hiện xóa nhiều tài sản thuộc chứng từ theo id được truyền vào
-        /// </summary>
-        /// <param name="voucherIds"></param>
-        /// <returns>số bản ghi đã được xóa</returns>
-        /// Created By: NguyetKTB (25/06/2023)
-        public int DeleteByVouchers(string[] vourcherIds)
-        {
-            string procName = DatabaseUtility.GetProcdureName<BudgetDetail>(MSProcdureName.DeleteByVoucher);
-            DynamicParameters dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add("ids", string.Join(",", vourcherIds));
-            var connection = _unitOfWork.GetConnection();
-            var transaction = _unitOfWork.GetTransaction();
-            try
-            {
-                var rowEffects = connection.Execute(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                return rowEffects;
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        public int DeleteByAssets(string[] assetIds)
-        {
-            string procName = "Proc_BudgetDetail_DeleteByAsset";
-            DynamicParameters dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add("assetIds", string.Join(",", assetIds));
-            var connection = _unitOfWork.GetConnection();
-            var transaction = _unitOfWork.GetTransaction();
-            try
-            {
-                var rowEffects = connection.Execute(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                return rowEffects;
             }
             catch
             {
@@ -110,12 +68,20 @@ namespace MISA.QuanLiTaiSan.DL.BudgetDetailRepository
             }
         }
 
-        public override int Delete(string[] id)
+        /// <summary>
+        /// Thực hiện xóa nhiều chi tiết nguồn chi phí theo trường được truyền vào
+        /// </summary>
+        /// <param name="ids">danh sách id chi tiết nguồn chi phí</param>
+        /// <param name="field">trường muốn xóa theo</param>
+        /// <returns>số bản ghi bị xóa</returns>
+        /// Created By: NguyetKTB (10/07/2023)
+        public int DeleteByField(string[] ids, string field)
         {
-            string procName = DatabaseUtility.GetProcdureName<BudgetDetail>(MSProcdureName.DeleteById);
+            string procName = "Proc_BudgetDetail_DeleteByField";
             DynamicParameters dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add("ids", string.Join(",", id));
-            var connection = GetConnection();
+            dynamicParameters.Add("ids", string.Join(",", ids));
+            dynamicParameters.Add("deleteBy", field);
+            var connection = _unitOfWork.GetConnection();
             var transaction = _unitOfWork.GetTransaction();
             try
             {

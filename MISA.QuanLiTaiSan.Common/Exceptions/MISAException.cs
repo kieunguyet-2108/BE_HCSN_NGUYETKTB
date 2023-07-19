@@ -9,10 +9,22 @@ namespace MISA.QuanLiTaiSan.Common.Exceptions
 {
     public class MISAException : Exception
     {
+        /// <summary>
+        /// Tin nhắn lỗi gửi tới người dùng
+        /// </summary>
+        /// Created By: NguyetKTB (05/05/2023)
         public string? ErrorMsg { get; set; }
 
+        /// <summary>
+        /// Danh sách lỗi
+        /// </summary>
+        /// Created By: NguyetKTB (05/05/2023)
         public IDictionary? ErrorData { get; set; }
 
+        /// <summary>
+        /// Kết quả muốn gửi 
+        /// </summary>
+        /// Created By: NguyetKTB (05/05/2023)
         public object? Result { get; set; }
 
         public MISAException(string errorMsg, IDictionary? errorData = null, object? result = null)

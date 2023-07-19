@@ -23,8 +23,8 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <summary>
         /// Thực hiện thêm mới chứng từ
         /// </summary>
-        /// <param name="voucher">thông tin chứng từ</param>
-        /// <param name="voucherDetails">thông tin tài sản thuộc chứng từ</param>
+        /// <param name="param">thông tin chứng từ, tài sản 
+        /// và nguồn chi phí liên quan tới chứng từ</param>
         /// <returns>
         /// 200 - thêm mới thành công
         /// 400 - lỗi validate
@@ -48,7 +48,7 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <summary>
         /// Thực hiện cập nhật thông tin chứng từ và các thông tin liên quan như danh sách tài sản của chứng từ, nguồn chi phí
         /// </summary>
-        /// <param name="param">thông tinđược cập nhật</param>
+        /// <param name="param">thông tin được cập nhật</param>
         /// <returns>
         /// 200 - cập nhật thành công
         /// 400 - lỗi validate

@@ -55,7 +55,7 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <summary>
         /// Lấy ra thông tin dữ liệu theo id truyền vào
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">id của entity cần lấy thông tin</param>
         /// <returns>
         /// 200 - lấy dữ liệu thành công
         /// 204 - không có dữ liệu 
@@ -80,7 +80,7 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <summary>
         /// Lấy ra danh sách bản ghi có phân trang theo điều kiện
         /// </summary>
-        /// <param name="filter"></param>
+        /// <param name="filter">thông tin lọc, phân trang</param>
         /// <returns>
         /// 200 - danh sách dữ liệu
         /// 204 - không có dữ liệu
@@ -105,9 +105,13 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <summary>
         /// Thực hiện kiểm tra mã code có bị trùng lặp hay không
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="entityId"></param>
-        /// <returns></returns>
+        /// <param name="code">mã của entity</param>
+        /// <param name="entityId">id của entity</param>
+        /// <returns>
+        /// 200 - thành công
+        /// 400 - lỗi
+        /// </returns>
+        /// Created By: NguyetKTB (05/05/2023)
         [HttpGet("DuplicateCode")]
         public IActionResult DuplicateCode(string code, string? entityId)
         {
@@ -209,7 +213,8 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <returns>
         /// 200 - xóa thành công
         /// 500 - xóa thất bại
-        ///</returns>
+        /// </returns>
+        /// Created By: NguyetKTB (05/07/2023)
         [HttpDelete]
         public IActionResult DeleteById(string[] ids)
         {
@@ -232,8 +237,8 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         /// <summary>
         /// Thực hiện xử lí trả về kết quả client
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="data"></param>
+        /// <param name="message">message muốn gửi</param>
+        /// <param name="data">dữ liệu muốn gửi</param>
         /// <returns>
         /// status code - trạng thái action
         /// response model - thông tin trả về 

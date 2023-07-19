@@ -15,6 +15,17 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
             _budgetDetailService = budgetDetailService;
         }
 
+        /// <summary>
+        /// Lấy ra danh sách nguồn chi phí theo tài sản và chứng từ
+        /// </summary>
+        /// <param name="assetId">id tài sản</param>
+        /// <param name="voucherId">id chứng từ</param>
+        /// <returns>
+        /// 200 - lấy thành công
+        /// 204 - không có dữ liệu
+        /// 500 - lỗi
+        /// </returns>
+        /// Created By: NguyetKTB (05/07/2023)
         [HttpGet("GetByAsset")]
         public IActionResult GetByAsset(string assetId, string voucherId)
         {

@@ -50,9 +50,9 @@ namespace MISA.QuanLiTaiSan.BL.VoucherService
             var transaction = _unitOfWork.GetTransaction();
             try
             {
-                int rowBudget = _budgetDetailRepository.DeleteByVouchers(guids);
-                int rowVoucherDetail = _voucherDetailRepository.DeleteMultiple(guids, "voucher_id");
-                int rowVoucher = _voucherRepository.DeleteAsync(guids);
+                int rowBudget = _budgetDetailRepository.DeleteByField(guids, "voucher");
+                int rowVoucherDetail = _voucherDetailRepository.DeleteByField(guids, "voucher");
+                int rowVoucher = _voucherRepository.Delete(guids);
                 _unitOfWork.Commit();
                 return rowVoucher;
             }
@@ -68,8 +68,9 @@ namespace MISA.QuanLiTaiSan.BL.VoucherService
         /// Thực hiện thêm chứng từ 
         /// </summary>
         /// <param name="voucher">thông tin chứng từ</param>
-        /// <param name="voucherDetails">thông tin chi tiết chứng từ</param>
-        /// <returns></returns>
+        /// <param name="FixedAssets">thông tin tài sản thuộc chứng từ</param>
+        /// <param name="BudgetDetails">thông tin nguồn chi phí</param>
+        /// <returns>chứng từ đã được thêm mới thành công</returns>
         /// Created By: NguyetKTB (09/07/2023)
         public Voucher InsertVoucher(Voucher voucher, List<FixedAsset>? FixedAssets, List<BudgetDetail>? BudgetDetails)
         {
@@ -88,6 +89,8 @@ namespace MISA.QuanLiTaiSan.BL.VoucherService
                     VoucherDetail voucherDetail = new VoucherDetail();
                     voucherDetail.voucher_id = voucher.voucher_id;
                     voucherDetail.fixed_asset_id = asset.fixed_asset_id;
+                    DateTime currentDate = DateTime.Now;
+                    voucherDetail.created_date = currentDate;
                     voucherDetails.Add(voucherDetail);
                 }
                 voucher.total_orgprice = CaculateTotalPrice(FixedAssets);
@@ -149,14 +152,18 @@ namespace MISA.QuanLiTaiSan.BL.VoucherService
                             VoucherDetail voucherDetail = new VoucherDetail();
                             voucherDetail.voucher_id = voucher.voucher_id;
                             voucherDetail.fixed_asset_id = asset.fixed_asset_id;
+                            DateTime currentDate = DateTime.Now;
+                            voucherDetail.modified_date = currentDate;
                             _voucherDetailService.HandleActionOfAsset(voucherDetail, voucher, (int)asset.action);
                         }
                     }
-
+                    // kiểm tra dữ liệu danh sách nguồn chi phí
+                    ValidateService(budgetDetails: BudgetDetails);
+                    // mỗi tài sản phải chứa các trường chi phí độc lập nhau
                     //xử lí dữ liệu ở bảng nguồn chi phí
                     foreach (var budget in BudgetDetails)
                     {
-                        if(budget.action != null)
+                        if (budget.action != null)
                         {
                             BudgetDetail budgetDetail = budget;
                             _budgetDetailService.HandleBudgetDetail(budgetDetail, (int)budget.action);
@@ -168,7 +175,7 @@ namespace MISA.QuanLiTaiSan.BL.VoucherService
                 catch
                 {
                     _unitOfWork.Rollback();
-                    return 0;
+                    throw;
                 }
             }
 
@@ -193,5 +200,58 @@ namespace MISA.QuanLiTaiSan.BL.VoucherService
             }
             return totalPrice;
         }
+
+
+        /// <summary>
+        /// Thực hiện kiểm tra nghiệp vụ riêng cho chi tiết nguồn chi phí
+        /// </summary>
+        /// <param name="budgetDetails">danh sách nguồn chi phí</param>
+        /// <exception cref="MISAException">lỗi trả về nếu có</exception>
+        /// Created By: NguyetKTB (10/07/2023)
+        protected void ValidateService(List<BudgetDetail> budgetDetails)
+        {
+            //  đảm bảo rằng mỗi phần tử của list có fixed_asset_id bằng nhau hì budget_category_id phải khác nhau
+            Dictionary<Guid, Guid> fixedAssetToBudgetCategory = new Dictionary<Guid, Guid>();
+
+            foreach (var budget in budgetDetails)
+            {
+                List<string> messages = new List<string>();
+                if (budget.action != (int)MSAction.Delete)
+                {
+                    if (fixedAssetToBudgetCategory.ContainsKey(budget.fixed_asset_id))
+                    {
+                        // Nếu fixed_asset_id đã tồn tại trong Dictionary,
+                        // kiểm tra xem budget_category_id có khác với giá trị đã lưu hay không
+                        if (fixedAssetToBudgetCategory[budget.fixed_asset_id] == budget.budget_category_id)
+                        {
+                            messages.Add("Nguồn chi phí có mã " + budget.budget_category_code + " đã bị trùng.");
+                            errors.Add("Chí phí có mã " + budget.budget_detail_id, messages);
+                        }
+                    }
+                    else
+                    {
+                        // Nếu fixed_asset_id chưa tồn tại trong Dictionary, thêm vào cùng với budget_category_id
+                        fixedAssetToBudgetCategory.Add(budget.fixed_asset_id, budget.budget_category_id);
+                    }
+                }
+
+            }
+            if (errors.Count > 0)
+            {
+                throw new MISAException(ResourceVN.Msg_Exception, (IDictionary?)errors);
+            }
+        }
+
+        /// <summary>
+        /// Hàm kiểm tra dữ liệu override trong base
+        /// </summary>
+        /// <param name="entity">thông tin chứng từ</param>
+        /// <param name="mode">trạng thái hành động</param>
+        /// Created By: NguyetKTB (10/07/2023)
+        protected override void ValidateService(Voucher entity, int mode)
+        {
+            base.ValidateService(entity, mode);
+        }
+
     }
 }

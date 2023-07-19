@@ -36,7 +36,7 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
         /// <summary>
         /// Thực hiện lấy ra dữ liệu trả về thông qua paging và filter
         /// </summary>
-        /// <param name="gridReader"></param>
+        /// <param name="gridReader">grid reader</param>
         /// <returns>
         /// model bao gồm data(dữ liệu trả về), tổng số bản ghi và summary của table
         /// </returns>
@@ -56,8 +56,8 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
         /// <summary>
         /// Thực hiện insert nhiều tài sản
         /// </summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
+        /// <param name="list">danh sách tài sản cần thêm mới</param>
+        /// <returns>tổng số tài sản được thêm mới</returns>
         /// Created By: NguyetKTB (25/05/2023)
         public int InsertMultiple(List<FixedAsset> list)
         {
@@ -78,11 +78,14 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
 
 
         /// <summary>
-        /// 
+        /// Lấy ra danh sách tài sản theo chứng từ
         /// </summary>
-        /// <param name="filterParam"></param>
-        /// <param name="whereCondition"></param>
-        /// <returns></returns>
+        /// <param name="filterParam">thông tin phân trang, lock</param>
+        /// <param name="whereCondition">điều kiện</param>
+        /// <returns>
+        /// Danh sách tài sản theo chứng từ, điều kiện lọc, phân trang
+        ///</returns>
+        /// Created By: NguyetKTB (05/07/2023)
         public PagingModel<FixedAsset> GetByVoucher(FilterParam filterParam, string whereCondition)
         {
             string procName = DatabaseUtility.GetProcdureName<FixedAsset>(MSProcdureName.GetByVoucher);
@@ -101,7 +104,7 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
         /// <summary>
         /// Thực hiện lấy ra các tài sản thuộc các chứng từ
         /// </summary>
-        /// <param name="ids">danh sách id của tài sản</param>
+        /// <param name="id">danh sách id của tài sản</param>
         /// <returns>danh sách các tài sản thuộc chứng từ</returns>
         /// Created By: NguyetKTB (25/05/2023)
         public IEnumerable<FixedAsset> GetFixedAssetsInVoucher(string id)
@@ -117,8 +120,10 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetDL
         /// <summary>
         /// Lấy ra danh sách tài sản tồn tại trong chứng từ
         /// </summary>
-        /// <param name="assetIds"></param>
-        /// <returns></returns>
+        /// <param name="assetIds">danh sách id tài sản</param>
+        /// <returns>
+        /// Danh sách tài sản
+        /// </returns>
         /// Created By: NguyetKTB (25/05/2023)
         public IEnumerable<FixedAsset> FindAssetInVoucher(string[] assetIds)
         {

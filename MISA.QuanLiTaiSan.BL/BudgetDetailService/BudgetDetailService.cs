@@ -26,7 +26,9 @@ namespace MISA.QuanLiTaiSan.BL.BudgetDetailService
         /// </summary>
         /// <param name="assetId">id của tài sản</param>
         /// <param name="voucherID">id của chứng từ</param>
-        /// <returns>danh sách chi tiết chi phí</returns>
+        /// <returns>
+        /// Danh sách thông tin chi tiết nguồn chi phí theo tài sản của chứng từ
+        /// </returns>
         /// Created By: NguyetKTB (10/07/2023)
         public IEnumerable<BudgetDetail> GetByAsset(string assetId, string voucherID)
         {
@@ -35,11 +37,11 @@ namespace MISA.QuanLiTaiSan.BL.BudgetDetailService
         }
 
         /// <summary>
-        /// 
+        /// Xử lý thông tin chi tiết nguồn chi phí theo hành động truyền vào
         /// </summary>
-        /// <param name="budgetDetail"></param>
-        /// <param name="fixed_asset_id"></param>
-        /// <param name="action"></param>
+        /// <param name="budgetDetail">thông tin chi tiết nguồn chi phí</param>
+        /// <param name="action">hành động</param>
+        ///Created By: NguyetKTB (10/07/2023)
         public void HandleBudgetDetail(BudgetDetail budgetDetail, int action)
         {
             switch (action)

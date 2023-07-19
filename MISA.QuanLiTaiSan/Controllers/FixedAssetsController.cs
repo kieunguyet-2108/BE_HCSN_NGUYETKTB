@@ -29,6 +29,16 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
 
 
         #region 
+        /// <summary>
+        /// Lấy ra tổng số chứng từ theo tài sản 
+        /// nhằm thực hiện kiểm tra có chứng từ liên quan tới tài sản hay không
+        /// </summary>
+        /// <param name="ids">danh sách id tài sản</param>
+        /// <returns>
+        /// 200 - thành công, không có chứng từ liên quan
+        /// 400 - có chứng từ liên quan
+        /// </returns>
+        /// Created By: NguyetKTB (05/07/2023)
         [HttpPost("FindInVoucher")]
         public IActionResult FindInVoucher(string[] ids)
         {
@@ -113,10 +123,15 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
 
 
         /// <summary>
-        /// 
+        /// Lấy ra danh sách chứng từ đã được lọc và phân trang
         /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
+        /// <param name="filter">thông tin lọc và phân trang</param>
+        /// <returns>
+        /// 200 - thành công
+        /// 204 - danh sách rỗng
+        /// 500 - lỗi
+        /// </returns>
+        /// Created By: NguyetKTB (05/07/2023)
         [HttpPost("GetByVoucher")]
         public IActionResult GetByVoucher(FilterParam filter)
         {
@@ -129,10 +144,15 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Lấy ra danh sách tài sản theo chứng từ
         /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
+        /// <param name="voucherId">id chứng từ</param>
+        /// <returns>
+        /// 200 - lấy thành công
+        /// 204 - không có dữ liệu
+        /// 500 - lỗi
+        /// </returns>
+        /// Created By: NguyetKTB (05/07/2023)
         [HttpGet("GetListInVoucher/{voucherId}")]
         public IActionResult GetListInVoucher(string voucherId)
         {

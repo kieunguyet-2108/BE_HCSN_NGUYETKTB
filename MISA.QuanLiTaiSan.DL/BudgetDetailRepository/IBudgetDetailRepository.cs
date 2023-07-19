@@ -19,14 +19,13 @@ namespace MISA.QuanLiTaiSan.DL.BudgetDetailRepository
         public int InsertMultiple(List<BudgetDetail> list);
 
         /// <summary>
-        /// Thực hiện xóa nhiều bản ghi
+        /// Thực hiện xóa nhiều chi tiết nguồn chi phí theo trường được truyền vào
         /// </summary>
-        /// <param name="voucherIds">danh sách id chứng từ</param>
-        /// <returns>số bản ghi bị ảnh hưởng</returns>
+        /// <param name="ids">danh sách id chi tiết nguồn chi phí</param>
+        /// <param name="field">trường muốn xóa theo</param>
+        /// <returns>số bản ghi bị xóa</returns>
         /// Created By: NguyetKTB (10/07/2023)
-        public int DeleteByVouchers(string[] voucherIds);
-
-        public int DeleteByAssets(string[] assetIds);
+        public int DeleteByField(string[] ids, string field);
 
         /// <summary>
         /// Lấy ra danh sách thông tin chi tiết nguồn chi phí theo tài sản của chứng từ

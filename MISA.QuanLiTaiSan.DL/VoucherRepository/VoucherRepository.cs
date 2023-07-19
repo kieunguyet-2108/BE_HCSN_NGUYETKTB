@@ -27,7 +27,7 @@ namespace MISA.QuanLiTaiSan.DL.VoucherRepository
         /// <summary>
         /// Thực hiện lấy ra dữ liệu trả về thông qua paging và filter
         /// </summary>
-        /// <param name="gridReader"></param>
+        /// <param name="gridReader">grid reader</param>
         /// <returns>
         /// model bao gồm data(dữ liệu trả về), tổng số bản ghi và summary của table
         /// </returns>
@@ -44,29 +44,5 @@ namespace MISA.QuanLiTaiSan.DL.VoucherRepository
             };
         }
 
-        /// <summary>
-        /// Thực hiện xóa nhiều chứng từ theo id được truyền vào
-        /// </summary>
-        /// <param name="voucherIds"></param>
-        /// <returns>số bản ghi đã được xóa</returns>
-        /// Created By: NguyetKTB (25/06/2023)
-        public int DeleteAsync(string[] voucherIds)
-        {
-            string procName = DatabaseUtility.GetProcdureName<Voucher>(MSProcdureName.DeleteById);
-            DynamicParameters dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add("ids", string.Join(",", voucherIds));
-            var connection = _unitOfWork.GetConnection();
-            var transaction = _unitOfWork.GetTransaction();
-            try
-            {
-                var rowEffects = connection.Execute(procName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                return rowEffects;
-            }
-            catch
-            {
-                throw;
-            }
-
-        }
     }
 }

@@ -11,12 +11,12 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetCategoryDL
 {
     public interface IFixedAssetCategoryRepository : IBaseRepository<FixedAssetCategory>
     {
-        ///// <summary>
-        ///// Thực hiện lấy ra thông tin entity theo điều kiện truyền vào
-        ///// </summary>
-        ///// <param name="condition"></param>
-        ///// <returns></returns>
-        ///// Created By: NguyetKTB (25/05/2023)
+        /// <summary>
+        /// Thực hiện lấy ra thông tin entity theo điều kiện truyền vào
+        /// </summary>
+        /// <param name="condition">điều kiện</param>
+        /// <returns>thông tin loại tài sản theo điều kiện</returns>
+        /// Created By: NguyetKTB (25/05/2023)
         public FixedAssetCategory GetByCondition(string condition);
     }
 }

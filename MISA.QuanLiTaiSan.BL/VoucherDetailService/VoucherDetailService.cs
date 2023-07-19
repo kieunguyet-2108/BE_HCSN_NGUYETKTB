@@ -33,11 +33,12 @@ namespace MISA.QuanLiTaiSan.BL.VoucherDetailService
 
 
         /// <summary>
-        /// Xử lý hành động của tài sản thuộc chứng từ
+        /// Xử lý thông tin chi tiết chứng từ theo hành động truyền vào
         /// </summary>
-        /// <param name="fixedAsset"></param>
-        /// <param name="voucher"></param>
-        /// <param name="action"></param>
+        /// <param name="detail">thông tin chi tiết chứng từ</param>
+        /// <param name="voucher">thông tin chứng từ</param>
+        /// <param name="action">hành động</param>
+        /// Created By: NguyetKTB (20/06/2023)
         public void HandleActionOfAsset(VoucherDetail detail, Voucher voucher, int action)
         {
             switch (action)
@@ -57,9 +58,9 @@ namespace MISA.QuanLiTaiSan.BL.VoucherDetailService
                     string[] assetIds = new string[1];
                     assetIds[0] = assetId;
                     // xóa những nguồn chi phí liên quan tài sản
-                    _budgetDetailRepository.DeleteByAssets(assetIds);
+                    _budgetDetailRepository.DeleteByField(assetIds, "fixed_asset");
                     // xóa tài sản thuộc chứng từ (vì 1 tài sản chỉ thuộc 1 chứng từ nên chỉ cần truyền id tài sản vào là xóa được)
-                    _voucherDetailRepository.DeleteByAsset(assetIds);
+                    _voucherDetailRepository.DeleteByField(assetIds, "fixed_asset");
                     break;
             }
         }

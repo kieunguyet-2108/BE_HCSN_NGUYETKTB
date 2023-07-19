@@ -23,8 +23,8 @@ namespace MISA.QuanLiTaiSan.DL.FixedAssetCategoryDL
         /// <summary>
         /// Thực hiện lấy ra thông tin entity theo điều kiện truyền vào
         /// </summary>
-        /// <param name="condition"></param>
-        /// <returns></returns>
+        /// <param name="condition">điều kiện</param>
+        /// <returns>thông tin loại tài sản theo điều kiện</returns>
         /// Created By: NguyetKTB (25/05/2023)
         public FixedAssetCategory GetByCondition(string condition)
         {

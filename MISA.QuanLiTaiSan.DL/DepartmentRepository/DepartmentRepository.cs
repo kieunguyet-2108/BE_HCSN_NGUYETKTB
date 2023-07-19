@@ -24,8 +24,8 @@ namespace MISA.QuanLiTaiSan.DL.DepartmentDL
         /// <summary>
         /// Thực hiện lấy ra thông tin entity theo điều kiện truyền vào
         /// </summary>
-        /// <param name="condition"></param>
-        /// <returns></returns>
+        /// <param name="condition">điều kiện</param>
+        /// <returns>thông tin phòng ban</returns>
         /// Created By: NguyetKTB (25/05/2023)
         public Department GetByCondition(string condition)
         {

@@ -85,13 +85,16 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
             var transaction = _unitOfWork.GetTransaction();
             return connection.QueryFirstOrDefault<T>(procedureName, dynamicParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
         }
+
         /// <summary>
-        /// 
+        /// lấy ra dữ liệu theo paging
         /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        /// Created By: NguyetKTB (15/05/2023) 
+        /// <param name="filter">thông tin lọc, phân trang</param>
+        /// <param name="where">điều kiện lọc</param>
+        /// <returns>
+        /// Danh sách dữ liệu theo paging, điều kiện lọc
+        /// </returns>
+        /// Created By: NguyetKTB (15/05/2023)
         public virtual PagingModel<T> GetByPaging(FilterParam filter, string? where)
         {
             string procName = DatabaseUtility.GetProcdureName<T>(MSProcdureName.GetByPaging);
@@ -110,8 +113,10 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         /// <summary>
         /// Hàm thực hiện xử lí dữ liệu paging trả về
         /// </summary>
-        /// <param name="gridReader"></param>
-        /// <returns></returns>
+        /// <param name="gridReader">grid reader</param>
+        /// <returns>
+        /// Thông tin phân trang theo entity
+        /// </returns>
         /// Created By: NguyetKTB (15/05/2023)
         public virtual PagingModel<T> HandlePagingModel(GridReader gridReader)
         {
@@ -129,7 +134,7 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
         /// Update dữ liệu
         /// </summary>
         /// <param name="entity">dữ liệu update</param>
-        /// <param name="entityId">id của entity sẽ update</param>
+        /// <param name="id">id của entity sẽ update</param>
         /// <returns>số bản ghi được update</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public int Update(T entity, Guid id)
@@ -165,9 +170,9 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
 
         #region DELETE
         /// <summary>
-        /// Xóa dữ liệu
+        /// Xóa dữ liệu theo danh sách id
         /// </summary>
-        /// <param name="guids">danh sách dữ liệu cần xóa</param>
+        /// <param name="id">danh sách id dữ liệu cần xóa</param>
         /// <returns>Số bản ghi bị ảnh hưởng</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public virtual int Delete(string[] id)
@@ -191,9 +196,11 @@ namespace MISA.QuanLiTaiSan.DL.BaseDL
 
 
         /// <summary>
-        /// Hàm thực hiện lấy mã tài sản mới
+        /// Hàm thực hiện lấy mã mới nhất
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// Mã mới nhất
+        /// </returns>
         /// Created By: NguyetKTB (25/05/2023)
         public string GetNewCode()
         {

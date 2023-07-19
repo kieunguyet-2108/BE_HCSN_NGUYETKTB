@@ -19,27 +19,30 @@ namespace MISA.QuanLiTaiSan.Api.Controllers
         {
             _accountService = accountService;
         }
-        [HttpGet("GeneratePassword")]
-        public IActionResult GeneratePassword(string password)
-        {
-            password = BCrypt.Net.BCrypt.HashPassword(password);
-            return Ok(password);
-        }
 
-        [HttpGet("VertifyPassword")]
-        public IActionResult VertifyPassword(string password, string hashedPassword)
-        {
-            bool validPassword = BCrypt.Net.BCrypt.Verify(password, hashedPassword);
-            return Ok(validPassword);
-        }
-
-
+        /// <summary>
+        /// Thực hiện lấy ra thông tin đăng nhập và trả về cho người dùng
+        /// </summary>
+        /// <param name="loginModel">thông tin đăng nhập, bao gồm tên và mật khẩu</param>
+        /// <returns>
+        /// 200 - thành công
+        /// 400 - lỗi validate
+        /// 500 - lỗi
+        /// </returns>
+        /// Created By: NguyetKTB (05/07/2023)
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginModel loginModel)
         {
             IActionResult? actionResult = null;
             var account = _accountService.Login(loginModel);
-            actionResult = HandleResult("Đăng nhập thành công.", MSCODE.Success, account);
+            if (account != null)
+            {
+                actionResult = HandleResult("Đăng nhập thành công.", MSCODE.Success, account);
+            }
+            else
+            {
+                actionResult = HandleResult("Đăng nhập thất bại.", MSCODE.BadRequest, account);
+            }
             return actionResult;
         }
 

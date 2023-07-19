@@ -30,8 +30,7 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
 
         private readonly IBaseRepository<T> _baseRepository;
         public readonly IUnitOfWork _unitOfWork;
-        // khai báo danh sách chứa lỗi
-        public IDictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
+        public IDictionary<string, List<string>> errors = new Dictionary<string, List<string>>();// khai báo danh sách chứa lỗi
         private IFixedAssetRepository fixedAssetRepository;
         private IBaseRepository<Department> baseRepository;
         private IBaseRepository<FixedAssetCategory> baseRepository1;
@@ -53,8 +52,19 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (25/05/2023)
         public string GetNewCode()
         {
-            string newCode = _baseRepository.GetNewCode();
-            return newCode;
+
+            _unitOfWork.GetTransaction(); // mở transaction
+            try
+            {
+                string newCode = _baseRepository.GetNewCode();
+                _unitOfWork.Commit();
+                return newCode;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
         }
 
         /// <summary>
@@ -64,8 +74,20 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (15/05/2023)
         public IEnumerable<T> GetList()
         {
-            IEnumerable<T> list = _baseRepository.GetList();
-            return list;
+
+            _unitOfWork.GetTransaction(); // mở transaction
+            try
+            {
+                IEnumerable<T> list = _baseRepository.GetList();
+                _unitOfWork.Commit();
+                return list;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
+
         }
 
         /// <summary>
@@ -76,9 +98,18 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (15/05/2023)
         public T GetEntityById(Guid id)
         {
-
-            T entity = _baseRepository.GetEntityById(id);
-            return entity;
+            _unitOfWork.GetTransaction(); // mở transaction
+            try
+            {
+                T entity = _baseRepository.GetEntityById(id);
+                _unitOfWork.Commit();
+                return entity;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
         }
 
 
@@ -91,8 +122,18 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         public virtual PagingModel<T> GetByPaging(FilterParam filter)
         {
             string whereCondition = HandleCondition(filter);
-            PagingModel<T> pagingModel = _baseRepository.GetByPaging(filter, whereCondition);
-            return pagingModel;
+            _unitOfWork.GetTransaction(); // mở transaction
+            try
+            {
+                PagingModel<T> pagingModel = _baseRepository.GetByPaging(filter, whereCondition);
+                _unitOfWork.Commit();
+                return pagingModel;
+            }
+            catch
+            {
+                _unitOfWork.Rollback();
+                throw;
+            }
 
         }
         #endregion
@@ -107,17 +148,19 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (15/05/2023)
         public int Update(T entity, Guid id)
         {
-            ValidateService(entity, (int)MSMode.Edit);
-            ValidateData(entity, true);
+            ValidateService(entity, (int)MSMode.Edit); // kiểm tra dữ liệu theo nghiệp vụ
+            ValidateData(entity, true); // kiểm tra dữ liệu
+            // nếu danh sách lỗi > 0 thì trả về lỗi cho người dùng
             if (errors.Count > 0)
             {
                 throw new MISAException(ResourceVN.Msg_Exception, (IDictionary?)errors);
             }
             else
             {
-                _unitOfWork.GetTransaction();
+                _unitOfWork.GetTransaction(); // mở transaction
                 try
                 {
+                    // gọi repo thực hiện update
                     var rowEffect = _baseRepository.Update(entity, id);
                     _unitOfWork.Commit();
                     return rowEffect;
@@ -140,16 +183,17 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// Created By: NguyetKTB (15/05/2023)
         public Guid Insert(T entity)
         {
+            // kiểm tra dữ liệu
             ValidateService(entity, (int)MSMode.Add);
             ValidateData(entity);
+            // trả về lỗi cho người dùng nếu có
             if (errors.Count > 0)
             {
                 throw new MISAException(ResourceVN.Msg_Exception, (IDictionary?)errors);
             }
             else
             {
-                var primaryKey = AttributeUtility.GetPrimaryKeyName<T>();
-
+                var primaryKey = AttributeUtility.GetPrimaryKeyName<T>(); // lấy ra khóa chính của entity
                 _unitOfWork.GetTransaction();
                 try
                 {
@@ -179,7 +223,7 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// <summary>
         /// Xóa dữ liệu
         /// </summary>
-        /// <param name="guids">danh sách dữ liệu cần xóa</param>
+        /// <param name="guids">danh sách id dữ liệu cần xóa</param>
         /// <returns>Số bản ghi bị ảnh hưởng</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public virtual int Delete(string[] guids)
@@ -205,8 +249,8 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// <summary>
         /// Thực hiện trả về operator của câu lệnh where trong filter
         /// </summary>
-        /// <param name="filterOperator"></param>
-        /// <returns></returns>
+        /// <param name="filterOperator">operator sẽ thực hiện filter</param>
+        /// <returns>chuỗi chứa toán thử sẽ được thực hiện</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public virtual string ProcessGetFilterOperator(int? filterOperator)
         {
@@ -222,11 +266,10 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         }
 
         /// <summary>
-        /// Hàm này dùng để tạo ra các câu lệnh sql gửi xuống db
+        /// Hàm này dùng để xử lí dữ liệu lọc được gửi lên 
         /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="stringKey"></param>
-        /// <returns></returns>
+        /// <param name="filter">thông tin </param>
+        /// <returns>chuỗi chứa câu lệnh được thực hiện để lọc</returns>
         /// Created By: NguyetKTB (15/05/2023)
         public virtual string ProcessMixedFilterColumn(FilterCondition filter)
         {
@@ -428,6 +471,7 @@ namespace MISA.QuanLiTaiSan.BL.BaseBL
         /// nếu trùng sẽ trả về dữ liệu trùng
         /// nếu không thì trả về null
         /// </returns>
+        ///Created By: NguyetKTB (25/05/2023)
         public T DuplicateCode(string code, string? id)
         {
             // lấy ra primary key

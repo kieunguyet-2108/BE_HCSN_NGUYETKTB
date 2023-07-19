@@ -169,6 +169,10 @@ namespace MISA.QuanLiTaiSan.Common.Entities
         /// Created By: NguyetKTB (15/05/2023)
         public DateTime? modified_date { get; set; }
 
+        /// <summary>
+        /// Hành động của tài sản
+        /// </summary>
+        /// Created By: NguyetKTB (10/07/2023)
         public int? action { get; set; }
 
         #endregion

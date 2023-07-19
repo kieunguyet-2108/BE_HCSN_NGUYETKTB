@@ -10,7 +10,6 @@ namespace MISA.QuanLiTaiSan.DL.VoucherRepository
 {
     public interface IVoucherRepository : IBaseRepository<Voucher>
     {
-        public int DeleteAsync(string[] voucherIds);
 
     }
 }

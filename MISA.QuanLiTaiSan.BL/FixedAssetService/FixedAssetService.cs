@@ -54,8 +54,12 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// <summary>
         /// Thực hiện xử lí validate và nghiệp vụ cần thiết
         /// </summary>
-        /// <param name="memoryStream"></param>
-        /// <returns></returns>
+        /// <param name="memoryStream">
+        /// File excel
+        /// </param>
+        /// <returns>
+        /// Danh sách tài sản và danh sách lỗi
+        ///</returns>
         /// Created By: NguyetKTB (02/06/2023)
         public (List<FixedAsset>, List<ImportResponse>) ImportFixedAsset(MemoryStream memoryStream)
         {
@@ -174,9 +178,11 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// <summary>
         /// Thực hiện xử lí dữ liệu trong file import
         /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
+        /// <param name="entity">thông tin tài sản</param>
+        /// <param name="property">property của tài sản</param>
+        /// <param name="field_name">tên của trường dữ liệu</param>
+        /// <param name="value">giá trị trường dữ liệu</param>
+        /// <param name="messages">danh sách lỗi</param>
         /// <exception cref="MISAException"></exception>
         /// Created By: NguyetKTB (02/06/2023)
         public void HandleDataImport(FixedAsset entity, PropertyInfo? property, string field_name, object? value, List<string> messages)
@@ -221,8 +227,8 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// <summary>
         /// Thực hiện override hàm validate service để thực hiện kiểm tra cụ thể theo nghiệp vụ
         /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="errors"></param>
+        /// <param name="entity">thông tin tài sản</param>
+        /// <param name="mode">trường hợp cần thực hiện kiểm tra dữ liệu</param>
         /// Created By: NguyetKTB (02/06/2023)
         protected override void ValidateService(FixedAsset entity, int mode)
         {
@@ -350,8 +356,8 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// <summary>
         /// Thực hiện insert nhiều bản ghi
         /// </summary>
-        /// <param name="fixedAssetList"></param>
-        /// <returns></returns>
+        /// <param name="fixedAssetList">danh sách thông tin tài sản cần thêm mới</param>
+        /// <returns>số bản ghi được thêm mới</returns>
         /// Created By: NguyetKTB (02/06/2023)
         public int InsertMultiple(List<FixedAsset> fixedAssetList)
         {
@@ -387,10 +393,12 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         }
 
         /// <summary>
-        /// Lấy ra tài sản theo chứng từ
+        /// Lấy ra tài sản theo chứng từ và kết hợp phân trang, lọc
         /// </summary>
-        /// <param name="filter">thông tin lọc, phân trang</param>
-        /// <returns>dữ liệu phân trang</returns>
+        /// <param name="filter">điều kiện lọc</param>
+        /// <returns>
+        /// Danh sách tài sản theo chứng từ, phân trang, lọc
+        ///</returns>
         /// Created By: NguyetKTB (20/06/2023)
         public PagingModel<FixedAsset> GetByVoucher(FilterParam filter)
         {
@@ -415,7 +423,7 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// Lấy ra danh sách tài sản theo chứng từ
         /// </summary>
         /// <param name="voucherId">id chứng từ</param>
-        /// <returns></returns>
+        /// <returns>Danh sách tài sản thuộc chứng từ</returns>
         /// Created By: NguyetKTB (20/06/2023)
         public IEnumerable<FixedAsset> GetListInVoucher(string voucherId)
         {
@@ -436,7 +444,10 @@ namespace MISA.QuanLiTaiSan.BL.FixedAssetBL
         /// <summary>
         /// Thực hiện kiểm tra id có liên quan tới các chứng từ khác hay không
         /// </summary>
-        /// <param name="guidIds"></param>
+        /// <param name="guidIds">mảng voucher id</param>
+        /// <returns>
+        /// Số lượng tài sản có liên quan tới các chứng từ khác
+        ///</returns>
         /// Created By: NguyetKTB (20/06/2023)
         public int FindAssetInVoucher(string[] guidIds)
         {
